@@ -1,0 +1,10 @@
+# Transcrição inicial de ipynb para rmarkdown
+
+### Tópicos que serão abordados:
+
+1.  Apresentação e estudo da base Penguins
+2.  Limpeza de dados inválidos
+3.  Avaliação de variáveis quantitativas e qualitativas
+4.  Análise de correlação
+5.  Teste de hipótese e justificativa para variável Sexo
+6.  Realizar seleção de variáveis artesanal
