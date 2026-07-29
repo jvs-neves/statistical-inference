@@ -1,3 +1,8 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
 # Análise - Penguins
 
 ## Tópicos que serão abordados:
@@ -90,8 +95,8 @@ graficos <- lapply(1:3, function(i) {
 grafico_final <- (graficos[[1]] | graficos[[2]] | graficos[[3]]) +
   plot_annotation(
     title = 'Contagem de Indivíduos pelas Variáveis Qualitativas',
-    theme = theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5)),
-    plot.margin = margin(t = 50, r = 50, b = 0, l = 50, unit = "pt")
+    theme = theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.margin = margin(t = 50, r = 50, b = 0, l = 50, unit = "pt"))
   )
 
 grafico_final
@@ -132,8 +137,8 @@ graficos_box <- lapply(1:4, function(i) {
 grafico_final_box <- wrap_plots(graficos_box, ncol = 4) +
   plot_annotation(
     title = 'Boxplot das Variáveis Numéricas',
-    theme = theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5)),
-    plot.margin = margin(t = 50, r = 25, b = 0, l = 25, unit = "pt")
+    theme = theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.margin = margin(t = 50, r = 25, b = 0, l = 25, unit = "pt"))
   )
 
 # Exibe o resultado final
