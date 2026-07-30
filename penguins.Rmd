@@ -60,17 +60,17 @@ library(tidyr)
 library(ggcorrplot)
 ```
 
-```{r importando base de dados, include=FALSE}
+```{r importando base de dados, echo=FALSE}
 dados <- read.csv("06_Pinguins_comprimento_nadadeira.csv")
 
 head(dados, n = 5)
 ```
 
-```{r descrevendo a base, include=FALSE}
+```{r descrevendo a base, echo=FALSE}
 summary(dados)
 ```
 
-```{r analise de qualidade de var. qualitativas, include=FALSE}
+```{r analise de qualidade de var. qualitativas, echo=FALSE}
 
 cat_cols <- c('species', 'island', 'sex')
 titulos <- c('Espécie', 'Ilha', 'Sexo')
@@ -107,7 +107,7 @@ grafico_final <- (graficos[[1]] | graficos[[2]] | graficos[[3]]) +
 grafico_final
 ```
 
-```{r boxplots}
+```{r boxplots, echo=FALSE}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
 
 dados_longos <- dados |>
@@ -176,7 +176,7 @@ Além disso, optou-se por não aplicar técnicas de imputação para inferir o s
 
 > Por fim, iremos fazer uma filtragem de uma das variáveis explicativas presente na base de dados. A variável em questão, não contribui com a explicabilidade da variável resposta: tamanho da nadadeira, visto que
 
-```{r desconsiderando coluna year}
+```{r desconsiderando coluna year, echo=FALSE}
 ggplot(dados, aes(x = factor(year), y = flipper_length_mm, color = factor(year))) +
   
   geom_jitter(width = 0.2, alpha = 0.4, size = 1.5) +
@@ -206,7 +206,7 @@ ggplot(dados, aes(x = factor(year), y = flipper_length_mm, color = factor(year))
 
 ### Avaliando correlações existententes
 
-```{r correlacoes}
+```{r correlacoes, echo=FALSE}
 library(ggcorrplot)
 
 num_cols <- c('bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g')
@@ -226,7 +226,7 @@ ggcorrplot(matriz_corr,
 
 (CITAR BODY_MASS e BILL_LENGTH como variáveis explicativas mais promissoras)
 
-```{r scatterplots multiplos}
+```{r scatterplots multiplos, echo=FALSE}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
 
 GGally::ggpairs(
@@ -252,7 +252,7 @@ GGally::ggpairs(
 
 Pela separação de espécies, fica clara a forte e positiva correlação entre a massa corporal do pinguim e o tamanho de sua nadadeira, isso para todas as três espécies avaliadas. Ademais, vê-se uma extensão da similaridade antes comprovada nos boxplots que as espécies *Adelia* e *Chinstrap* compartilham de características intrínsecas para tamanho da nadadeira e profundidade do bico
 
-```{r correlação conjunta}
+```{r correlação conjunta, echo=FALSE}
 p_agregado <- ggplot(dados, aes(flipper_length_mm, body_mass_g)) +
   geom_point(color = "#397E9E", alpha = 0.65) +
   geom_smooth(method = "lm", se = TRUE, color = "#00395C", fill = "#B5E5FF") +
