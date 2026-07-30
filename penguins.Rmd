@@ -46,39 +46,31 @@ Pergunta formulada:
 
 ------------------------------------------------------------------------
 
-### Setup
+## Análise Exploratória
 
 ```{r setup, include=FALSE}
 # include=FALSE roda e esconde no arquivo
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
-# Carregue todas as bibliotecas aqui, de uma vez
+# Carregando todas as bibliotecas
 library(dplyr)
 library(ggplot2)
+library(patchwork)
+library(tidyr)
+library(ggcorrplot)
 ```
 
-Iniciando a importação da base de dados
-
-```{r importando data_base}
+```{r importando base de dados, include=FALSE}
 dados <- read.csv("06_Pinguins_comprimento_nadadeira.csv")
 
-head(dados, n = 8)
+head(dados, n = 5)
 ```
 
-```         
-```
-
-```{r descrevendo a base}
+```{r descrevendo a base, include=FALSE}
 summary(dados)
 ```
 
-Agora com a importação feita, vamos fazer uma avaliação inicial, buscando conhecer essa base de dados
-
-### Apresentação de variáveis
-
-```{r analise de qualidade de var. qualitativas}
-library(ggplot2)
-library(patchwork)
+```{r analise de qualidade de var. qualitativas, include=FALSE}
 
 cat_cols <- c('species', 'island', 'sex')
 titulos <- c('Espécie', 'Ilha', 'Sexo')
@@ -99,16 +91,16 @@ graficos <- lapply(1:3, function(i) {
     
     theme_minimal() +
     theme(
-      plot.title = element_text(size = 12, face = "bold"),
-      legend.position = "none",
+      plot.title = element_text(size = 11, face = "oblique"),
+      legend.position = "bottom",
       plot.margin = margin(t = 10, unit="pt")
     )
 })
 
 grafico_final <- (graficos[[1]] | graficos[[2]] | graficos[[3]]) +
   plot_annotation(
-    title = 'Contagem de Indivíduos pelas Variáveis Qualitativas',
-    theme = theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    title = 'Figura 1: Contagem de Indivíduos pelas Variáveis Qualitativas',
+    theme = theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
                   plot.margin = margin(t=10,b=-10, unit="pt")),
   )
 
@@ -116,77 +108,103 @@ grafico_final
 ```
 
 ```{r boxplots}
-library(tidyr)
-library(ggplot2)
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
 
-# 1. Transformando os dados para o formato longo (Pivot)
 dados_longos <- dados |>
   pivot_longer(
-    # Usando as colunas reais do seu dataset de pinguins
     cols = c(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g), 
     names_to = "medida",
     values_to = "valor"
   )
 
-# 2. Gerando o gráfico facetado
 ggplot(dados_longos, aes(x = species, y = valor, color = species)) +
   
-  # Boxplot transparente para ver os pontos por trás
   geom_boxplot(aes(fill = species), alpha = 0.12, width = 0.58,
                outlier.shape = NA, linewidth = 0.55) +
   
-  # Adiciona os pontos reais (Jitter) para mostrar o volume de dados
   geom_jitter(width = 0.14, alpha = 0.55, size = 1.35) +
   
-  # Cria um quadro para cada "medida" automaticamente em 2 colunas
   facet_wrap(~ medida, scales = "free_y", ncol = 2) +
   
-  # Aplica a sua paleta de cores customizada
   scale_color_manual(values = paleta_especies) +
   scale_fill_manual(values = paleta_especies) +
   
-  # Rótulos (Adaptados para o seu contexto)
   labs(
-    title = "Distribuição das Variáveis Numéricas por Espécie",
+    title = "Figura 2: Distribuição das Variáveis Numéricas por Espécie",
     subtitle = "Boxplots sobrepostos com dispersão de indivíduos",
     x = NULL, 
     y = "Valor", 
     color = "Espécie"
   ) +
   
-  # Estilização herdada do seu código anterior + ajustes para os facets
   theme_minimal() +
   theme(
-    # Centraliza e formata os títulos
     plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
     plot.subtitle = element_text(size = 11, hjust = 0.5, color = "grey40"),
     
-    # Coloca os títulos de cada sub-gráfico em negrito (bill_length, etc)
     strip.text = element_text(face = "bold", size = 11),
     
-    # Remove as linhas de grade menores para um visual mais limpo
     panel.grid.minor = element_blank(),
     
-    # Move a legenda para a parte inferior para dar mais espaço aos gráficos
     legend.position = "bottom"
   ) +
   
-  # Remove a legenda de preenchimento, pois a de contorno (color) já é suficiente
   guides(fill = "none")
 ```
 
-> Os diagramas de caixa (boxplots) confirmam a consistência das distribuições morfométricas na amostra. As caixas interquartílicas evidenciam a amplitude do centro dos dados para cada medida física. Nota-se a semelhante distribuição entre as espécies *Adelie* e *Chinstrap,* ....
+> Os diagramas de caixa (boxplots) confirmam a consistência das distribuições morfométricas na amostra. As caixas interquartílicas evidenciam a amplitude do centro dos dados para cada medida física. Nota-se a semelhante distribuição, entre as espécies *Adelie* e *Chinstrap,* para características como massa corporal, tamanho da nadadeira, e profundidade do bico que pode ser explicada pela (CITAR PONTO ECOLOGICO E MORFOLOGICO). Por outro lado, a espécie *Gentoo* se distingue ...
 
 ------------------------------------------------------------------------
 
-### Limpeza dos dados nulos, sendo justificados pelo teste de hipótese
+### Tratamento de dados
 
-- Percebe-se, pela plottagem de variáveis qualitativas, que possuímos uma parcela de especímes que não possuem seu sexo identificado, assim, vamos avaliar a necessidade de sua possível remoção
+> Percebe-se que, na Figura 1, possuímos uma parcela de especímes que não possuem seu sexo identificado. Com isso, avaliaremos o nível de importância dessa varíavel afim de tomar uma decisão quanto à remoção dos espécimes com informações faltantes ou à inclusão desses espécifes ao modelo
+
+$$Considerando \ as \ seguintes \ hip óteses:
+\\
+H_0: \mu male = \mu female
+\\
+H1: \mu male \neq \mu female$$
+
+Ao realizarmos um teste t de Student entre para a variável descrita, rejeitamos a hipótese nula de igualdade entre as médias, por termos obtido t = 4,801 e p \< 0,001. Há evidências suficientes que indicam uma associação entre o sexo e o tamanho da nadadeira.
+
+Ao realizarmos a aplicação do Coeficiente de Cohen, demonstramos que a variável *sexo* possui alta relevância preditiva e explicativa em relação ao comprimento da nadadeira, o que inviabiliza a exclusão da coluna inteira do conjunto de dados.
+
+A variável apresentou 11 registros ausentes (NaN), o que corresponde a aproximadamente 3,2% da base total. Na literatura de análise de dados, proporções de dados faltantes inferiores a 5% são frequentemente tratadas através da exclusão das observações, já que a perda de poder estatístico é negligenciável.
+
+Além disso, optou-se por não aplicar técnicas de imputação para inferir o sexo desses 11 espécimes. Como as características morfológicas possuem forte correlação com o sexo, deduzir essa categoria a partir de outras variáveis introduziria um viés de circularidade, inflando artificialmente as correlações na etapa de modelagem. Portanto, visando preservar a integridade da distribuição original e a confiabilidade das inferências estatísticas, as 11 tuplas contendo valores ausentes foram removidas, mantendo-se a coluna em sua totalidade para as etapas subsequentes.
+
+> Por fim, iremos fazer uma filtragem de uma das variáveis explicativas presente na base de dados. A variável em questão, não contribui com a explicabilidade da variável resposta: tamanho da nadadeira, visto que
+
+```{r desconsiderando coluna year}
+ggplot(dados, aes(x = factor(year), y = flipper_length_mm, color = factor(year))) +
+  
+  geom_jitter(width = 0.2, alpha = 0.4, size = 1.5) +
+  geom_boxplot(fill = NA, outlier.shape = NA, color = "black", linewidth = 0.6, width = 0.5) +
+  
+  scale_color_manual(values = c("2007" = "#7f8c8d", "2008" = "#95a5a6", "2009" = "#bdc3c7")) +
+  
+  labs(
+    title = "Figura 3: Estabilidade Temporal do Comprimento da Nadadeira",
+    subtitle = "A distribuição da variável resposta permanece constante ao longo dos anos",
+    x = "Ano da Coleta",
+    y = "Comprimento da Nadadeira (mm)"
+  ) +
+  
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, color = "grey40", hjust = 0.5),
+    legend.position = "none", # Oculta a legenda pois o eixo X já explica
+    panel.grid.minor = element_blank()
+  )
+```
+
+> Embora o gráfico revele uma sutil variação negativa na mediana do ano de 2007 e uma assimetria na distribuição dos anos subsequentes (com maior concentração de pontos entre o terceiro e quarto quartis), essas nuances visuais não justificam a utilização dessa variável no modelo. A concentração assimétrica na porção superior das caixas reflete, na verdade, uma distribuição bimodal causada pela sobreposição das diferentes espécies na amostra anual, especificamente a presença da espécie Gentoo, cujos espécimes possuem dimensões naturalmente maiores. Dado que essa variação milimétrica interanual não oferece ganho preditivo ou explicativo relevante em comparação com as variáveis biológicas principais (*Sexo* e *Espécie*), a desconsideração da variável temporal *Ano* não contribuirá para perda significativa de informação.
 
 ------------------------------------------------------------------------
 
-### Buscando entender possíveis correlações
+### Avaliando correlações existententes
 
 ```{r correlacoes}
 library(ggcorrplot)
@@ -199,14 +217,16 @@ ggcorrplot(matriz_corr,
            lab_size = 4,                    
            colors = c("#4575b4", "white", "#d72522"), 
            outline.color = "white",
-           title = "Matriz de Correlação",
+           title = "Figura 4: Matriz de Correlação",
            ggtheme = theme_minimal()) +     
   theme(
     plot.title = element_text(size = 12, face = "bold", hjust = 0.5)
   )
 ```
 
-```{r scatterplots iris}
+(CITAR BODY_MASS e BILL_LENGTH como variáveis explicativas mais promissoras)
+
+```{r scatterplots multiplos}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
 
 GGally::ggpairs(
