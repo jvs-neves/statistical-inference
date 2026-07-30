@@ -3,29 +3,53 @@ output:
   pdf_document: default
   html_document: default
 ---
-# Análise - Penguins
 
-## Tópicos que serão abordados:
+![](images/UFCG_logo-01.png){style="display: block;   margin-left: auto;   margin-right: auto;" width="122"}
 
-1.  Apresentação e estudo da base Penguins
-2.  Limpeza de dados inválidos
-3.  Avaliação de variáveis quantitativas e qualitativas
-4.  Análise de correlação
-5.  Teste de hipótese e justificativa para variável Sexo
-6.  Realizar seleção de variáveis artesanal
+**UNIVERSIDADE FEDERAL DE CAMPINA GRANDE**
+
+**Disciplina: Estatística Aplicada – Período: 2026.1**
+
+**Professores: Profa. Dra. Amanda Gomes; Prof. Dr. Jerfson Bruno; Prof. Dr. Gilberto Matos**
+
+------------------------------------------------------------------------
+
+# Modelagem da Relação entre Características Morfológicas de Pinguins
+
+### João Vítor Neves, Darlan Almeida, Emerson Sulpino
+
+#### Departamento de Ciência da Computação - UFCG
+
+------------------------------------------------------------------------
+
+##### Resumo
+
+Este trabalho aplica a metodologia de regressão linear múltipla (MRLM) ao conjunto de dados *Palmer Penguins*, proveniente do programa de Pesquisa Ecológica de Longo Prazo (LTER) na Antártica Ocidental, com o objetivo de modelar o tamanho da nadadeira a partir das demais variáveis morfológicas e ecológicas a partir das espécies *Adelie*, *Chinstrap* e *Gentoo*. Realizamos uma análise exploratória, incluindo correlações, box-plots e verificação de dados ausentes, ajustamos um modelo inicial com todas as variáveis explicativas disponíveis e identificamos multicolinearidade entre a massa corporal e a espécie. Selecionamos então um modelo final por meio (CITAR O CRITÉRIO), livre de multicolinearidade relevante, e verificamos seus pressupostos através de análise de resíduos. Por fim, para dois conjuntos de valores das variáveis explicativas, apresentamos os intervalos de confiança para o valor médio esperado da variável resposta e os intervalos de predição para novas observações, com interpretação prática de ambos.
+
+##### Palavras-Chave:
+
+regressao linear multipla, multicolinearidade, selecao de modelos, palmer penguins, analise exploratoria, caracteristicas morfometicas
+
+------------------------------------------------------------------------
+
+## 1. Introdução
+
+[text]
 
 ### Varíável resposta:
 
-- Usaremos `flipper_length_mm` — o comprimento da nadadeira, em milímetros — como resposta. Queremos investigar e prever essa medida partir das demais informações disponíveis sobre o pinguim: espécie, ilha, medidas do bico, massa corporal, sexo e ano de coleta.
+Usaremos `flipper_length_mm` — o comprimento da nadadeira, em milímetros — como resposta. Queremos investigar e prever essa medida partir das demais informações disponíveis sobre o pinguim: espécie, ilha, medidas do bico, massa corporal, sexo e ano de coleta.
 
 Pergunta formulada:
 
 > Entre pinguins semelhantes nas demais características consideradas, como o comprimento esperado da nadadeira varia com cada preditor, e quão bem o modelo prevê novos pinguins?
 
+------------------------------------------------------------------------
+
 ### Setup
 
 ```{r setup, include=FALSE}
-# include=FALSE roda o código, mas esconde tudo do relatório final
+# include=FALSE roda e esconde no arquivo
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 # Carregue todas as bibliotecas aqui, de uma vez
@@ -33,116 +57,190 @@ library(dplyr)
 library(ggplot2)
 ```
 
-Iniciando a importação do Dataset
+Iniciando a importação da base de dados
 
 ```{r importando data_base}
 dados <- read.csv("06_Pinguins_comprimento_nadadeira.csv")
 
-# Exibindo as tuplas iniciais
-knitr::kable(head(dados))
+head(dados, n = 8)
 ```
 
-```{r descrevendo base}
-# Descrevendo os dados importados
+```         
+```
+
+```{r descrevendo a base}
 summary(dados)
 ```
 
-Agora com a importação feita, vamos fazer uma avaliação inicial, buscando conhecer essa base de dados Vamos fazer uma apresentação inicial desses dados
+Agora com a importação feita, vamos fazer uma avaliação inicial, buscando conhecer essa base de dados
 
 ### Apresentação de variáveis
 
 ```{r analise de qualidade de var. qualitativas}
-# Carregando as bibliotecas necessárias
 library(ggplot2)
 library(patchwork)
 
-# 1. Configuração inicial das variáveis
 cat_cols <- c('species', 'island', 'sex')
 titulos <- c('Espécie', 'Ilha', 'Sexo')
-paletas <- c('Blues', 'Oranges', 'Greens') # No R, a reversão (-1) é feita direto na escala
+paletas <- c('Blues', 'Oranges', 'Greens')
 
-# 2. Criando uma lista de gráficos usando um loop (lapply equivalente ao list comprehension/for)
 graficos <- lapply(1:3, function(i) {
   
-  # Inicializa o gráfico mapeando a variável da iteração atual
   ggplot(dados, aes(x = .data[[cat_cols[i]]], fill = .data[[cat_cols[i]]])) +
-    
-    # Adiciona as barras (equivalente ao sns.countplot)
     geom_bar() +
-    
-    # Adiciona os rótulos de dados no topo das barras (muito mais simples que o ax.patches!)
     geom_text(stat = "count", aes(label = after_stat(count)), 
-              vjust = -0.5, fontface = "bold", size = 4) +
+              vjust = -0.05, fontface = "bold", size = 4) +
     
-    # Aplica a paleta de cores reversa
     scale_fill_brewer(palette = paletas[i], direction = -1) +
     
-    # Remove rótulo do eixo X, define o Y e o título (equivalente ao ax.set_*)
     labs(title = paste('Distribuição por', titulos[i]), 
          x = NULL, 
          y = 'Frequência (n)') +
     
-    # Configuração visual (equivalente ao sns.set_theme e plt.tight_layout)
     theme_minimal() +
     theme(
       plot.title = element_text(size = 12, face = "bold"),
-      legend.position = "none"
+      legend.position = "none",
+      plot.margin = margin(t = 10, unit="pt")
     )
 })
 
-# 3. Juntando os 3 gráficos lado a lado e adicionando o título principal
-# O patchwork permite somar os gráficos e agrupá-los na mesma linha usando o operador |
 grafico_final <- (graficos[[1]] | graficos[[2]] | graficos[[3]]) +
   plot_annotation(
     title = 'Contagem de Indivíduos pelas Variáveis Qualitativas',
     theme = theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-    plot.margin = margin(t = 50, r = 50, b = 0, l = 50, unit = "pt"))
+                  plot.margin = margin(t=10,b=-10, unit="pt")),
   )
 
 grafico_final
 ```
 
-```{r boxplots das var. quantitativas}
-# Carregando as bibliotecas
+```{r boxplots}
+library(tidyr)
 library(ggplot2)
-library(patchwork)
+paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
 
-# 1. Configuração das listas de variáveis, títulos e cores hexadecimais
-num_cols <- c('bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g')
-titulos <- c('bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g')
-cores <- c('#4C72B0', '#DD8452', '#55A868', '#C44E52')
-
-# 2. Criando a lista de boxplots com lapply
-graficos_box <- lapply(1:4, function(i) {
-  
-  ggplot(dados, aes(y = .data[[num_cols[i]]])) +
-    
-    # Adiciona o boxplot (width e outlier.size equivalem ao width e fliersize do Seaborn)
-    geom_boxplot(fill = cores[i], width = 0.4, outlier.size = 2, color = "black") +
-    
-    # Define os títulos e remove os rótulos dos eixos
-    labs(title = titulos[i], y = NULL, x = NULL) +
-    
-    # Aplica o tema limpo
-    theme_minimal() +
-    theme(
-      plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
-      axis.text.x = element_blank(), # Remove o texto do eixo X, já que é apenas um boxplot vertical
-      axis.ticks.x = element_blank()
-    )
-})
-
-# 3. Juntando os gráficos e adicionando o título principal
-# A função wrap_plots é uma forma inteligente de agrupar listas sem precisar somar um por um
-grafico_final_box <- wrap_plots(graficos_box, ncol = 4) +
-  plot_annotation(
-    title = 'Boxplot das Variáveis Numéricas',
-    theme = theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-    plot.margin = margin(t = 50, r = 25, b = 0, l = 25, unit = "pt"))
+# 1. Transformando os dados para o formato longo (Pivot)
+dados_longos <- dados |>
+  pivot_longer(
+    # Usando as colunas reais do seu dataset de pinguins
+    cols = c(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g), 
+    names_to = "medida",
+    values_to = "valor"
   )
 
-# Exibe o resultado final
-grafico_final_box
+# 2. Gerando o gráfico facetado
+ggplot(dados_longos, aes(x = species, y = valor, color = species)) +
+  
+  # Boxplot transparente para ver os pontos por trás
+  geom_boxplot(aes(fill = species), alpha = 0.12, width = 0.58,
+               outlier.shape = NA, linewidth = 0.55) +
+  
+  # Adiciona os pontos reais (Jitter) para mostrar o volume de dados
+  geom_jitter(width = 0.14, alpha = 0.55, size = 1.35) +
+  
+  # Cria um quadro para cada "medida" automaticamente em 2 colunas
+  facet_wrap(~ medida, scales = "free_y", ncol = 2) +
+  
+  # Aplica a sua paleta de cores customizada
+  scale_color_manual(values = paleta_especies) +
+  scale_fill_manual(values = paleta_especies) +
+  
+  # Rótulos (Adaptados para o seu contexto)
+  labs(
+    title = "Distribuição das Variáveis Numéricas por Espécie",
+    subtitle = "Boxplots sobrepostos com dispersão de indivíduos",
+    x = NULL, 
+    y = "Valor", 
+    color = "Espécie"
+  ) +
+  
+  # Estilização herdada do seu código anterior + ajustes para os facets
+  theme_minimal() +
+  theme(
+    # Centraliza e formata os títulos
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5, color = "grey40"),
+    
+    # Coloca os títulos de cada sub-gráfico em negrito (bill_length, etc)
+    strip.text = element_text(face = "bold", size = 11),
+    
+    # Remove as linhas de grade menores para um visual mais limpo
+    panel.grid.minor = element_blank(),
+    
+    # Move a legenda para a parte inferior para dar mais espaço aos gráficos
+    legend.position = "bottom"
+  ) +
+  
+  # Remove a legenda de preenchimento, pois a de contorno (color) já é suficiente
+  guides(fill = "none")
 ```
 
-> Os diagramas de caixa (boxplots) confirmam a consistência das distribuições morfométricas na amostra. As caixas interquartílicas evidenciam a amplitude do centro dos dados para cada medida física. Observa-se uma presença praticamente nula de valores discrepantes isolados (outliers), indicando alta qualidade nas medições de campo e ausência de erros grosseiros de digitação ou amostragem.
+> Os diagramas de caixa (boxplots) confirmam a consistência das distribuições morfométricas na amostra. As caixas interquartílicas evidenciam a amplitude do centro dos dados para cada medida física. Nota-se a semelhante distribuição entre as espécies *Adelie* e *Chinstrap,* ....
+
+------------------------------------------------------------------------
+
+### Limpeza dos dados nulos, sendo justificados pelo teste de hipótese
+
+- Percebe-se, pela plottagem de variáveis qualitativas, que possuímos uma parcela de especímes que não possuem seu sexo identificado, assim, vamos avaliar a necessidade de sua possível remoção
+
+------------------------------------------------------------------------
+
+### Buscando entender possíveis correlações
+
+```{r correlacoes}
+library(ggcorrplot)
+
+num_cols <- c('bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g')
+matriz_corr <- cor(dados[num_cols], use = "complete.obs")
+
+ggcorrplot(matriz_corr,
+           lab = TRUE,                      
+           lab_size = 4,                    
+           colors = c("#4575b4", "white", "#d72522"), 
+           outline.color = "white",
+           title = "Matriz de Correlação",
+           ggtheme = theme_minimal()) +     
+  theme(
+    plot.title = element_text(size = 12, face = "bold", hjust = 0.5)
+  )
+```
+
+```{r scatterplots iris}
+paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
+
+GGally::ggpairs(
+  dados,  
+  columns = num_cols, 
+  
+  mapping = aes(color = species, fill = species, alpha = 0.7),  
+  # UpperSide são os valores de correlaçõa
+  upper = list(continuous = GGally::wrap("cor", size = 3.5)),  
+  # Diagonal são os gráficos de distribuição
+  diag = list(continuous = GGally::wrap("densityDiag", alpha = 0.35)),
+  # Lowerside são os pontos plottados
+  lower = list(continuous = GGally::wrap("points", alpha = 0.5, size = 1.2))
+) +  
+  scale_color_manual(values = paleta_especies) +  
+  scale_fill_manual(values = paleta_especies) +  
+  
+  theme_bw(base_size = 10) +
+  theme(
+    strip.text = element_text(face = "bold", size = 9)
+  )
+```
+
+Pela separação de espécies, fica clara a forte e positiva correlação entre a massa corporal do pinguim e o tamanho de sua nadadeira, isso para todas as três espécies avaliadas. Ademais, vê-se uma extensão da similaridade antes comprovada nos boxplots que as espécies *Adelia* e *Chinstrap* compartilham de características intrínsecas para tamanho da nadadeira e profundidade do bico
+
+```{r correlação conjunta}
+p_agregado <- ggplot(dados, aes(flipper_length_mm, body_mass_g)) +
+  geom_point(color = "#397E9E", alpha = 0.65) +
+  geom_smooth(method = "lm", se = TRUE, color = "#00395C", fill = "#B5E5FF") +
+  labs(
+    title = "Relação agregada",
+    subtitle = "Uma única reta para todos os pinguins",
+    x = "Comprimento da nadadeira (mm)", y = "Massa corporal (g)"
+  )
+
+p_agregado
+```
