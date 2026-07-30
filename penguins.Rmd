@@ -44,9 +44,36 @@ Pergunta formulada:
 
 > Entre pinguins semelhantes nas demais características consideradas, como o comprimento esperado da nadadeira varia com cada preditor, e quão bem o modelo prevê novos pinguins?
 
-------------------------------------------------------------------------
+## 2. Metodologia
 
-## Análise Exploratória
+[text]
+
+## 3. Descrição da base
+
+```{r dicionario_variaveis, echo=FALSE}
+dict <- tibble::tribble(
+  ~Variável, ~Tipo, ~Papel, ~Definição, ~Unidade,
+  "species", "Categórica", "Preditor", "Espécie do pinguim (Adelie, Chinstrap, Gentoo)", "",
+  "island", "Categórica", "Preditor", "Ilha de observação (Dream, Torgersen, Biscoe)", "",
+  "bill_length_mm", "Numérica", "Preditor", "Comprimento do bico", "milímetros",
+  "bill_depth_mm", "Numérica", "Preditor", "Profundidade do bico", "milímetros",
+  "flipper_length_mm", "Numérica", "Resposta", "Comprimento da nadadeira", "milímetros",
+  "body_mass_g", "Numérica", "Preditor", "Massa corporal", "gramas",
+  "sex", "Categórica", "Preditor", "Sexo do pinguim (male, female)", "",
+  "year", "Inteira", "Descartada", "Ano em que a observação foi registrada", ""
+)
+
+# Gerando a tabela com formatação nativa para PDF
+knitr::kable(
+  dict, 
+  caption = "Dicionário de variáveis",
+  align = c("l", "c", "c", "l"), 
+  booktabs = TRUE,               
+  linesep = "",                  
+)
+```
+
+## 4. Análise Exploratória
 
 ```{r setup, include=FALSE}
 # include=FALSE roda e esconde no arquivo
@@ -70,7 +97,7 @@ head(dados, n = 5)
 summary(dados)
 ```
 
-```{r analise de qualidade de var. qualitativas, echo=FALSE}
+```{r analise de qualidade de var. qualitativas, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 
 cat_cols <- c('species', 'island', 'sex')
 titulos <- c('Espécie', 'Ilha', 'Sexo')
@@ -87,12 +114,12 @@ graficos <- lapply(1:3, function(i) {
     
     labs(title = paste('Distribuição por', titulos[i]), 
          x = NULL, 
-         y = 'Frequência (n)') +
+         y = '') +
     
     theme_minimal() +
     theme(
-      plot.title = element_text(size = 11, face = "oblique"),
-      legend.position = "bottom",
+      plot.title = element_text(size = 8, face = "oblique", hjust = 0.5),
+      legend.position = "none",
       plot.margin = margin(t = 10, unit="pt")
     )
 })
@@ -100,14 +127,21 @@ graficos <- lapply(1:3, function(i) {
 grafico_final <- (graficos[[1]] | graficos[[2]] | graficos[[3]]) +
   plot_annotation(
     title = 'Figura 1: Contagem de Indivíduos pelas Variáveis Qualitativas',
-    theme = theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
-                  plot.margin = margin(t=10,b=-10, unit="pt")),
+    
+    caption = 'Fonte: Elaborado pelo autor (2026).',
+    
+    theme = theme(
+      plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
+      plot.caption = element_text(size = 9, hjust = 0, color = "grey30"),
+      
+      plot.margin = margin(t = 10, b = 10, unit = "pt")
+    )
   )
 
 grafico_final
 ```
 
-```{r boxplots, echo=FALSE}
+```{r boxplots, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
 
 dados_longos <- dados |>
@@ -156,15 +190,18 @@ ggplot(dados_longos, aes(x = species, y = valor, color = species)) +
 
 ------------------------------------------------------------------------
 
-### Tratamento de dados
+### 4.2 Tratamento de dados
 
-> Percebe-se que, na Figura 1, possuímos uma parcela de especímes que não possuem seu sexo identificado. Com isso, avaliaremos o nível de importância dessa varíavel afim de tomar uma decisão quanto à remoção dos espécimes com informações faltantes ou à inclusão desses espécifes ao modelo
+#### 4.2.1 Variável Sexo
 
-$$Considerando \ as \ seguintes \ hip óteses:
+Percebe-se que, na Figura 1, possuímos uma parcela de especímes que não possuem seu sexo identificado. Com isso, avaliaremos o nível de importância dessa varíavel afim de tomar uma decisão quanto à remoção dos espécimes com informações faltantes ou à inclusão desses espécifes ao modelo
+
+$$\\Considerando \ as \ seguintes \ hipóteses:
 \\
 H_0: \mu male = \mu female
 \\
-H1: \mu male \neq \mu female$$
+H1: \mu male \neq \mu female
+\\$$
 
 Ao realizarmos um teste t de Student entre para a variável descrita, rejeitamos a hipótese nula de igualdade entre as médias, por termos obtido t = 4,801 e p \< 0,001. Há evidências suficientes que indicam uma associação entre o sexo e o tamanho da nadadeira.
 
@@ -172,11 +209,9 @@ Ao realizarmos a aplicação do Coeficiente de Cohen, demonstramos que a variáv
 
 A variável apresentou 11 registros ausentes (NaN), o que corresponde a aproximadamente 3,2% da base total. Na literatura de análise de dados, proporções de dados faltantes inferiores a 5% são frequentemente tratadas através da exclusão das observações, já que a perda de poder estatístico é negligenciável.
 
-Além disso, optou-se por não aplicar técnicas de imputação para inferir o sexo desses 11 espécimes. Como as características morfológicas possuem forte correlação com o sexo, deduzir essa categoria a partir de outras variáveis introduziria um viés de circularidade, inflando artificialmente as correlações na etapa de modelagem. Portanto, visando preservar a integridade da distribuição original e a confiabilidade das inferências estatísticas, as 11 tuplas contendo valores ausentes foram removidas, mantendo-se a coluna em sua totalidade para as etapas subsequentes.
+#### 4.2.2 Variável Ano
 
-> Por fim, iremos fazer uma filtragem de uma das variáveis explicativas presente na base de dados. A variável em questão, não contribui com a explicabilidade da variável resposta: tamanho da nadadeira, visto que
-
-```{r desconsiderando coluna year, echo=FALSE}
+```{r desconsiderando coluna year, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 ggplot(dados, aes(x = factor(year), y = flipper_length_mm, color = factor(year))) +
   
   geom_jitter(width = 0.2, alpha = 0.4, size = 1.5) +
@@ -200,13 +235,13 @@ ggplot(dados, aes(x = factor(year), y = flipper_length_mm, color = factor(year))
   )
 ```
 
-> Embora o gráfico revele uma sutil variação negativa na mediana do ano de 2007 e uma assimetria na distribuição dos anos subsequentes (com maior concentração de pontos entre o terceiro e quarto quartis), essas nuances visuais não justificam a utilização dessa variável no modelo. A concentração assimétrica na porção superior das caixas reflete, na verdade, uma distribuição bimodal causada pela sobreposição das diferentes espécies na amostra anual, especificamente a presença da espécie Gentoo, cujos espécimes possuem dimensões naturalmente maiores. Dado que essa variação milimétrica interanual não oferece ganho preditivo ou explicativo relevante em comparação com as variáveis biológicas principais (*Sexo* e *Espécie*), a desconsideração da variável temporal *Ano* não contribuirá para perda significativa de informação.
+> A variável em questão, não contribui com a explicabilidade da variável resposta visto que, embora o gráfico revele uma sutil variação negativa na mediana do ano de 2007 e uma assimetria na distribuição dos anos subsequentes (com maior concentração de pontos entre o terceiro e quarto quartis), essas nuances visuais não justificam a utilização dessa variável no modelo. A concentração assimétrica na porção superior das caixas reflete, na verdade, uma distribuição bimodal causada pela sobreposição das diferentes espécies na amostra anual, especificamente a presença da espécie Gentoo, cujos espécimes possuem dimensões naturalmente maiores. Dado que essa variação milimétrica interanual não oferece ganho preditivo ou explicativo relevante em comparação com as variáveis biológicas principais (*Sexo* e *Espécie*), a desconsideração da variável temporal *Ano* não contribuirá para perda significativa de informação.
 
 ------------------------------------------------------------------------
 
-### Avaliando correlações existententes
+### 4.3 Avaliação de correlação entre variáveis
 
-```{r correlacoes, echo=FALSE}
+```{r correlacoes, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 library(ggcorrplot)
 
 num_cols <- c('bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g')
@@ -226,7 +261,7 @@ ggcorrplot(matriz_corr,
 
 (CITAR BODY_MASS e BILL_LENGTH como variáveis explicativas mais promissoras)
 
-```{r scatterplots multiplos, echo=FALSE}
+```{r scatterplots multiplos, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
 
 GGally::ggpairs(
@@ -252,7 +287,7 @@ GGally::ggpairs(
 
 Pela separação de espécies, fica clara a forte e positiva correlação entre a massa corporal do pinguim e o tamanho de sua nadadeira, isso para todas as três espécies avaliadas. Ademais, vê-se uma extensão da similaridade antes comprovada nos boxplots que as espécies *Adelia* e *Chinstrap* compartilham de características intrínsecas para tamanho da nadadeira e profundidade do bico
 
-```{r correlação conjunta, echo=FALSE}
+```{r correlação conjunta, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 p_agregado <- ggplot(dados, aes(flipper_length_mm, body_mass_g)) +
   geom_point(color = "#397E9E", alpha = 0.65) +
   geom_smooth(method = "lm", se = TRUE, color = "#00395C", fill = "#B5E5FF") +
@@ -264,3 +299,7 @@ p_agregado <- ggplot(dados, aes(flipper_length_mm, body_mass_g)) +
 
 p_agregado
 ```
+
+## Construção do Modelo
+
+[text] e [formula_modelo completo]
