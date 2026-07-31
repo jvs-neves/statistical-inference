@@ -25,7 +25,7 @@ output:
 
 ##### Resumo
 
-Este trabalho aplica a metodologia de regressão linear múltipla (MRLM) ao conjunto de dados *Palmer Penguins*, proveniente do programa de Pesquisa Ecológica de Longo Prazo (LTER) na Antártica Ocidental, com o objetivo de modelar o tamanho da nadadeira a partir das demais variáveis morfológicas e ecológicas a partir das espécies *Adelie*, *Chinstrap* e *Gentoo*. Realizamos uma análise exploratória, incluindo correlações, box-plots e verificação de dados ausentes, ajustamos um modelo inicial com todas as variáveis explicativas disponíveis e identificamos multicolinearidade entre a massa corporal e a espécie. Selecionamos então um modelo final por meio (CITAR O CRITÉRIO), livre de multicolinearidade relevante, e verificamos seus pressupostos através de análise de resíduos. Por fim, para dois conjuntos de valores das variáveis explicativas, apresentamos os intervalos de confiança para o valor médio esperado da variável resposta e os intervalos de predição para novas observações, com interpretação prática de ambos.
+Este trabalho aplica a metodologia de regressão linear múltipla (MRLM) ao conjunto de dados *Palmer Penguins*, proveniente do programa de Pesquisa Ecológica de Longo Prazo (LTER) na Antártica Ocidental, com o objetivo de modelar o comprimento da nadadeira de pinguins das espécies *Adelie*, *Chinstrap* e *Gentoo* a partir de variáveis morfológicas e categóricas. Realizou-se uma análise exploratória das distribuições, correlações e dados ausentes, seguida do ajuste de um modelo completo e da comparação de subconjuntos de preditores por validação cruzada $K$-Fold. O modelo selecionado, composto por espécie, comprimento do bico, profundidade do bico e massa corporal, apresentou o menor RMSE médio entre os candidatos avaliados. A comparação por teste $t$ pareado com correção de Nadeau-Bengio reforçou a superioridade desse modelo em relação ao modelo apenas quantitativo, enquanto os diagnósticos indicaram boa capacidade explicativa, com presença de heterocedasticidade e leve afastamento da normalidade dos resíduos. Assim, o relatório preserva a seleção do modelo como uma decisão baseada no conjunto das evidências: desempenho preditivo, parcimônia, contribuição estatística da espécie e avaliação dos pressupostos.
 
 ##### Palavras-Chave:
 
@@ -58,17 +58,27 @@ Pergunta formulada:
 A análise estrutura-se em quatro etapas: (i) exploração dos dados, ausências e correlações; (ii) ajuste do modelo inicial e avaliação de multicolinearidade; (iii) seleção do modelo final via validação cruzada $k$-fold e testes de hipótese; e (iv) diagnóstico dos pressupostos dos resíduos, complementado pela construção de intervalos de confiança e de predição.
 
 ### 2.1 Modelo inicial de regressão linear múltipla
-Seja yi o tamanho da nadadeira do i-ésimo pinguin. O modelo inicial, com todas as variáveis explicativas disponíveis, é dado por
-$$\begin{aligned}
-yi = β_0 + β_1tamBico + β_2 tamBico + β_3 profundBico + β_4 massaCorp + β_5 chinstrap + β_6 gentoo + εi,
-\end{aligned}$$
-em que Chinstrap e Gentoo são indicadoras da espécie do i-ésimo pinguin (Adelie como categoria de referência) e $εi$ segue as suposições usuais do MRLM: média nula, variância constante, independência e normalidade. A multicolinearidade entre as variáveis explicativas foi avaliada pelo fator de inflação de variância, $VIF_j = 1/(1 − R^2_j )$, em que $R^2_j$ é o coeficiente de determinação da regressão de $X_j$ sobre as demais explicativas; $VIF_j > 10$ indica multicolinearidade severa. A seleção do modelo final entre os candidatos foi conduzida por procedimento (ALTERAR) stepwise baseado no Critério de (CITAR CRITERIO), $AIC = −2 log( ˆL) + 2k$, priorizando, entre modelos de ajuste equivalente, aquele livre de multicolinearidade relevante.
+
+Seja $y_i$ o comprimento da nadadeira, em milímetros, do $i$-ésimo pinguim. Após a retirada da variável `year`, avaliada exploratoriamente como pouco informativa para a resposta, e a remoção dos registros sem identificação de sexo, o modelo completo inicial foi definido com as variáveis morfológicas contínuas e as variáveis categóricas disponíveis:
+
+$$
+\begin{aligned}
+y_i =\;& \beta_0 + \beta_1\,\text{tamBico}_i + \beta_2\,\text{profundBico}_i
+      + \beta_3\,\text{massaCorp}_i + \beta_4\,\text{chinstrap}_i \\
+& + \beta_5\,\text{gentoo}_i + \beta_6\,\text{dream}_i
+  + \beta_7\,\text{torgersen}_i + \beta_8\,\text{male}_i + \varepsilon_i.
+\end{aligned}
+$$
+
+Nesse modelo, `compBico`, `profundBico` e `massaCorp` representam, respectivamente, o comprimento do bico, a profundidade do bico e a massa corporal. As variáveis `chinstrap` e `gentoo` são indicadoras da espécie, tendo *Adelie* como categoria de referência; `dream` e `torgersen` são indicadoras da ilha, tendo *Biscoe* como referência; e `male` representa o sexo masculino, tendo `female` como referência. O termo $\varepsilon_i$ representa o erro aleatório e segue as suposições usuais do MRLM: média nula, variância constante, independência e normalidade aproximada.
+
+A multicolinearidade entre as variáveis explicativas foi avaliada pelo fator de inflação de variância, $VIF_j = 1/(1 - R^2_j)$, em que $R^2_j$ é o coeficiente de determinação da regressão de $X_j$ sobre as demais explicativas; valores de $VIF_j > 10$ foram tratados como indicativo de multicolinearidade severa. A seleção do modelo final foi conduzida pela comparação de subconjuntos de preditores por validação cruzada $K$-Fold ($k = 5$), utilizando o RMSE médio como métrica principal de desempenho preditivo. O AIC e o BIC foram considerados como medidas auxiliares de ajuste e parcimônia, sem substituir a decisão baseada na validação cruzada e nos testes comparativos entre modelos.
 
 ### 2.2 Diagnóstico de Suposições
 A validação do modelo vencedor ancorou-se na verificação gráfica e formal dos pressupostos clássicos dos resíduos:
 
 * **Linearidade e Homocedasticidade:** Avaliadas pelo diagrama de resíduos versus valores ajustados e testadas pelo Teste de Breusch-Pagan ($H_0$: variância constante).
-* **Normalidade dos Erros:** Inspecionada pelo gráfico Q-Q Plot e submetida aos testes formais de Jarque-Bera e Shapiro-Wilk ($H_0$: distribuição normal dos erros).
+* **Normalidade dos Erros:** Inspecionada pelo gráfico Q-Q Plot e submetida ao teste formal de Jarque-Bera ($H_0$: distribuição normal dos erros).
 * **Independência dos Erros:** Verificada pelo Teste de Durbin-Watson ($H_0$: ausência de autocorrelação nos resíduos).
 
 ### 2.3 Critérios de Seleção e Validação Cruzada
@@ -335,7 +345,18 @@ p_agregado
 
 ## 5. Seleção de Variáveis e Regressão dos modelos
 
-[text] e [formula_modelo_A]
+A partir do modelo inicial apresentado na Seção 2.1, com todas as variáveis explicativas disponíveis (exceto os espécimes sem sexo identificado, tratados na Seção 4.2.1), construímos o Modelo Completo como ponto de partida para a seleção de variáveis:
+
+$$
+\begin{aligned}
+y_i =\;& \beta_0 + \beta_1\,\text{tamBico}_i + \beta_2\,\text{profundBico}_i
+      + \beta_3\,\text{massaCorp}_i + \beta_4\,\text{chinstrap}_i \\
+& + \beta_5\,\text{gentoo}_i + \beta_6\,\text{dream}_i
+  + \beta_7\,\text{torgersen}_i + \beta_8\,\text{male}_i + \varepsilon_i.
+\end{aligned}
+$$
+
+em que *Chinstrap* e *Gentoo* são indicadoras da espécie (*Adelie* como referência), *Dream* e *Torgersen* são indicadoras da ilha (*Biscoe* como referência) e *male* é indicadora do sexo (*female* como referência). Antes de comparar subconjuntos de preditores por validação cruzada (Seção 5.1), avaliamos primeiro se a variável espécie — apontada na análise exploratória (Seções 4.1 e 4.3) como fortemente associada às demais medidas morfológicas — de fato acrescenta poder explicativo, comparando por ANOVA o Modelo Completo contra sua versão restrita sem espécie.
 
 ```{r tratamento de dados pré modelagem, echo=FALSE}
 dados_modelados <- dados |>
@@ -424,6 +445,46 @@ knitr::kable(
   column_spec(2, width = "8cm") 
 ```
 
+##### Diagnóstico de Multicolinearidade do Modelo Vencedor
+
+```{r vif_modelo_vencedor, echo=FALSE, warning=FALSE, message=FALSE}
+library(car)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+dados_dummy <- dados_modelados |>
+  mutate(
+    species_Chinstrap = as.numeric(species == "Chinstrap"),
+    species_Gentoo = as.numeric(species == "Gentoo")
+  )
+
+modelo_vencedor_dummy <- lm(
+  flipper_length_mm ~ species_Chinstrap + species_Gentoo +
+    bill_length_mm + bill_depth_mm + body_mass_g,
+  data = dados_dummy
+)
+
+vif_tab <- data.frame(
+  Variavel = names(vif(modelo_vencedor_dummy)),
+  VIF = as.numeric(vif(modelo_vencedor_dummy))
+)
+
+knitr::kable(
+  vif_tab,
+  col.names = c("Variável", "VIF"),
+  caption = "Fator de Inflação da Variância (VIF) do modelo vencedor.",
+  booktabs = TRUE,
+  digits = 3,
+  row.names = FALSE
+) |>
+  kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+```
+
+A variável indicadora referente à espécie *Gentoo* apresenta VIF = 14,65, ultrapassando o limiar de severidade ($VIF > 10$) definido na Seção 2.1, enquanto as demais variáveis permanecem em um patamar moderado (VIF entre 4 e 6). Esse resultado decorre da forte associação entre a espécie *Gentoo* e as variáveis `body_mass_g` e `bill_depth_mm`: indivíduos dessa espécie apresentam massa corporal média de 5.092g, cerca de 37% acima de *Adelie* (3.706g) e *Chinstrap* (3.733g), e profundidade de bico média de 15,0mm, sensivelmente menor que os cerca de 18,3–18,4mm observados nas outras duas espécies. Ainda assim, entre os subconjuntos avaliados na Seção 5.1, o modelo vencedor apresentou o menor RMSE médio via validação cruzada, e sua remoção da variável espécie (Modelo B) resultou em desempenho preditivo inferior. Optou-se, portanto, por manter a variável, reconhecendo que a colinearidade residual associada a *Gentoo* limita a precisão da estimativa isolada desse coeficiente, sem comprometer a capacidade preditiva geral do modelo.
+
+Complementarmente, a comparação entre o modelo vencedor e o Modelo A (Qualitativo: espécie, ilha e sexo) não indicou diferença estatisticamente significativa de desempenho preditivo ($p = 0{,}14$), e a comparação entre o Modelo A e o Modelo B (Quantitativo) também não foi significativa ($p = 0{,}79$). Em conjunto, esses três testes sugerem que ilha e sexo carregam pouca informação preditiva adicional sobre o comprimento da nadadeira depois de considerar espécie e as medidas contínuas, reforçando a decisão de excluí-las do modelo final por parcimônia.
+
 ## 6. Análise de Residuos
 
 ```{r graficos_residuos, echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="90%", fig.width=10, fig.height=4.5}
@@ -496,6 +557,7 @@ tabela_testes |>
   ) |>
   kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
+
 ```{r residuos_especie, echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="80%"}
 library(ggplot2)
 library(broom)
