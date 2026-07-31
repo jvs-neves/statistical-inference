@@ -35,7 +35,15 @@ regressao linear multipla, multicolinearidade, selecao de modelos, palmer pengui
 
 ## 1. Introdução
 
-[text]
+Este trabalho utiliza o conjunto de dados *Palmer Penguins*, coletado pelo programa de Pesquisa Ecológica de Longo Prazo (LTER) entre 2007 e 2009, para investigar quais características morfológicas e categóricas explicam o comprimento da nadadeira dos indivíduos amostrados. Diferentemente de uma descrição puramente correlacional, buscamos um modelo de regressão linear múltipla (MRLM) que permita interpretar efeitos parciais — isto é, o efeito de cada variável mantendo as demais constantes —, avaliar a adequação de suas suposições e quantificar a incerteza tanto para o valor médio esperado da resposta quanto para novas observações individuais.
+
+### Objetivos da análise
+
+- caracterizar exploratoriamente as variáveis morfológicas e categóricas disponíveis;
+- ajustar um modelo inicial com todas as variáveis explicativas e avaliar multicolinearidade;
+- selecionar, entre modelos candidatos, aquele com melhor equilíbrio entre desempenho preditivo, parcimônia e ausência de colinearidade relevante;
+- verificar as suposições do MRLM por meio de diagnóstico de resíduos;
+- construir intervalos de confiança e de predição para cenários específicos, com interpretação prática.
 
 ### Varíável resposta:
 
@@ -47,17 +55,28 @@ Pergunta formulada:
 
 ## 2. Metodologia
 
-[text]
+A análise estrutura-se em quatro etapas: (i) exploração dos dados, ausências e correlações; (ii) ajuste do modelo inicial e avaliação de multicolinearidade; (iii) seleção do modelo final via validação cruzada $k$-fold e testes de hipótese; e (iv) diagnóstico dos pressupostos dos resíduos, complementado pela construção de intervalos de confiança e de predição.
 
 ### 2.1 Modelo inicial de regressão linear múltipla
-
 Seja yi o tamanho da nadadeira do i-ésimo pinguin. O modelo inicial, com todas as variáveis explicativas disponíveis, é dado por
-
 $$\begin{aligned}
 yi = β_0 + β_1tamBico + β_2 tamBico + β_3 profundBico + β_4 massaCorp + β_5 chinstrap + β_6 gentoo + εi,
 \end{aligned}$$
+em que Chinstrap e Gentoo são indicadoras da espécie do i-ésimo pinguin (Adelie como categoria de referência) e $εi$ segue as suposições usuais do MRLM: média nula, variância constante, independência e normalidade. A multicolinearidade entre as variáveis explicativas foi avaliada pelo fator de inflação de variância, $VIF_j = 1/(1 − R^2_j )$, em que $R^2_j$ é o coeficiente de determinação da regressão de $X_j$ sobre as demais explicativas; $VIF_j > 10$ indica multicolinearidade severa. A seleção do modelo final entre os candidatos foi conduzida por procedimento (ALTERAR) stepwise baseado no Critério de (CITAR CRITERIO), $AIC = −2 log( ˆL) + 2k$, priorizando, entre modelos de ajuste equivalente, aquele livre de multicolinearidade relevante.
 
-em que *Chinstrap* e *Gentoo* são indicadoras da espécie do i-ésimo pinguin (*Adelie* como categoria de referência) e $εi$ segue as suposições usuais do MRLM: média nula, variância constante, independência e normalidade. A multicolinearidade entre as variáveis explicativas foi avaliada pelo fator de inflação de variância, $VIF_j = 1/(1 − R^2_j )$, em que $R^2_j$ é o coeficiente de determinação da regressão de $X_j$ sobre as demais explicativas; $VIF_j > 10$ indica multicolinearidade severa. A seleção do modelo final entre os candidatos foi conduzida por procedimento (ALTERAR) *stepwise* baseado no Critério de (CITAR CRITERIO), $AIC = −2 log( ˆL) + 2k$, priorizando, entre modelos de ajuste equivalente, aquele livre de multicolinearidade relevante.
+### 2.2 Diagnóstico de Suposições
+A validação do modelo vencedor ancorou-se na verificação gráfica e formal dos pressupostos clássicos dos resíduos:
+
+* **Linearidade e Homocedasticidade:** Avaliadas pelo diagrama de resíduos versus valores ajustados e testadas pelo Teste de Breusch-Pagan ($H_0$: variância constante).
+* **Normalidade dos Erros:** Inspecionada pelo gráfico Q-Q Plot e submetida aos testes formais de Jarque-Bera e Shapiro-Wilk ($H_0$: distribuição normal dos erros).
+* **Independência dos Erros:** Verificada pelo Teste de Durbin-Watson ($H_0$: ausência de autocorrelação nos resíduos).
+
+### 2.3 Critérios de Seleção e Validação Cruzada
+Para prevenir o superajuste (*overfitting*) e priorizar a parcimônia, os modelos candidatos foram avaliados pelo Critério de Informação de Akaike (AIC), que equilibra qualidade de ajuste e quantidade de parâmetros.
+
+A capacidade de generalização foi mensurada por Validação Cruzada $K$-Fold ($k = 5$) com base no Erro Quadrático Médio de Predição (RMSE). Para comparar os modelos concorrentes neutralizando a dependência entre as dobras de treino e teste, aplicou-se o teste $t$ pareado com a correção de variância de Nadeau-Bengio:
+
+$$\sigma^2_{\text{corrigida}} = \left( \frac{1}{k} + \frac{n_{\text{teste}}}{n_{\text{treino}}} \right) s^2_{\text{diferença}}$$
 
 ## 3. Descrição da base
 A base de dados Palmer Penguins possui n = 344 espécimes registrados
@@ -85,6 +104,8 @@ knitr::kable(
 ```
 
 ## 4. Análise Exploratória
+
+### 4.1 Distribuição das variáveis
 
 ```{r setup, include=FALSE}
 # include=FALSE roda e esconde no arquivo
@@ -198,7 +219,7 @@ ggplot(dados_longos, aes(x = species, y = valor, color = species)) +
   guides(fill = "none")
 ```
 
-Os diagramas de caixa confirmam a consistência das distribuições morfométricas na amostra. As caixas interquartílicas evidenciam a amplitude do centro dos dados para cada medida física. Nota-se a semelhante distribuição, entre as espécies *Adelie* e *Chinstrap,* para características como massa corporal, tamanho da nadadeira, e profundidade do bico que pode ser explicada pela (CITAR PONTO ECOLOGICO E MORFOLOGICO). Por outro lado, a espécie *Gentoo* se distingue ...
+Os diagramas de caixa confirmam a consistência das distribuições morfométricas na amostra. As caixas interquartílicas evidenciam a amplitude do centro dos dados para cada medida física. Nota-se a semelhante distribuição, entre as espécies *Adelie* e *Chinstrap*, para características como massa corporal, tamanho da nadadeira e profundidade do bico, fato que pode ser explicado pela **convergência ecomorfológica e sobreposição parcial de nicho trófico entre ambas as espécies**, que compartilham hábitos de forrageamento de menor profundidade em relação aos *Gentoo*. Por outro lado, a espécie *Gentoo* se distingue acentuadamente por apresentar maior massa corporal e nadadeiras significativamente mais longas (gigantismo relativo dentro do gênero), porém acompanhadas por bicos proporcionalmente mais rasos (*bill depth*).
 
 ------------------------------------------------------------------------
 
@@ -271,7 +292,7 @@ ggcorrplot(matriz_corr,
   )
 ```
 
-A Figura 4 apresenta ...
+A Figura 4 apresenta a matriz de correlação de Pearson entre as variáveis numéricas contínuas. Observa-se uma forte correlação positiva entre o comprimento da nadadeira (`flipper_length_mm`) e a massa corporal (`body_mass_g`) ($r = 0,87$), evidenciando que a massa é o principal preditor linear contínuo do tamanho do apêndice. O comprimento do bico (`bill_length_mm`) também exibe correlação positiva considerável ($r = 0,65$) com a variável resposta. Em contrapartida, a profundidade do bico (`bill_depth_mm`) apresenta correlação negativa com a nadadeira ($r = -0,58$), um comportamento aparente causado pela presença da espécie *Gentoo*, cujos indivíduos possuem nadadeiras longas e bicos finos.
 
 ```{r scatterplots multiplos, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
