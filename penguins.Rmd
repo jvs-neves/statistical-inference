@@ -1,6 +1,9 @@
 ---
+title: "Penguins Analysis"
+author: "João Neves"
 output:
-  pdf_document: default
+  pdf_document: 
+    latex_engine: xelatex
   html_document: default
 ---
 
@@ -48,8 +51,18 @@ Pergunta formulada:
 
 [text]
 
-## 3. Descrição da base
+### 2.1 Modelo inicial de regressão linear múltipla
 
+Seja yi o tamanho da nadadeira do i-ésimo pinguin. O modelo inicial, com todas as variáveis explicativas disponíveis, é dado por
+
+$$\begin{aligned}
+yi = β_0 + β_1tamBico + β_2 tamBico + β_3 profundBico + β_4 massaCorp + β_5 chinstrap + β_6 gentoo + εi,
+\end{aligned}$$
+
+em que *Chinstrap* e *Gentoo* são indicadoras da espécie do i-ésimo pinguin (*Adelie* como categoria de referência) e εi segue as suposições usuais do MRLM: média nula, variância constante, independência e normalidade. A multicolinearidade entre as variáveis explicativas foi avaliada pelo fator de inflação de variância, VIF_j = 1/(1 − R\^2_j ), em que R^2_j é o coeficiente de determinação da regressão de X_j sobre as demais explicativas; VIF_j \> 10 indica multicolinearidade severa. A seleção do modelo final entre os candidatos foi conduzida por procedimento *stepwise* baseado no Critério de (CITAR CRITERIO), AIC = −2 log( ˆL) + 2k, priorizando, entre modelos de ajuste equivalente, aquele livre de multicolinearidade relevante.
+
+## 3. Descrição da base
+A base de dados Palmer Penguins possui n = 344 espécimes registrados
 ```{r dicionario_variaveis, echo=FALSE}
 dict <- tibble::tribble(
   ~Variável, ~Tipo, ~Papel, ~Definição, ~Unidade,
@@ -90,11 +103,12 @@ library(ggcorrplot)
 ```{r importando base de dados, echo=FALSE}
 dados <- read.csv("06_Pinguins_comprimento_nadadeira.csv")
 
-head(dados, n = 5)
-```
-
-```{r descrevendo a base, echo=FALSE}
-summary(dados)
+knitr::kable(
+  head(dados, n = 5),
+  caption = "Amostra dos dados",
+  booktabs = TRUE,
+  linesep = "",
+  )
 ```
 
 ```{r analise de qualidade de var. qualitativas, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
@@ -173,8 +187,8 @@ ggplot(dados_longos, aes(x = species, y = valor, color = species)) +
   
   theme_minimal() +
   theme(
-    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 11, hjust = 0.5, color = "grey40"),
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 8, hjust = 0.5, color = "grey40"),
     
     strip.text = element_text(face = "bold", size = 11),
     
@@ -186,7 +200,7 @@ ggplot(dados_longos, aes(x = species, y = valor, color = species)) +
   guides(fill = "none")
 ```
 
-> Os diagramas de caixa (boxplots) confirmam a consistência das distribuições morfométricas na amostra. As caixas interquartílicas evidenciam a amplitude do centro dos dados para cada medida física. Nota-se a semelhante distribuição, entre as espécies *Adelie* e *Chinstrap,* para características como massa corporal, tamanho da nadadeira, e profundidade do bico que pode ser explicada pela (CITAR PONTO ECOLOGICO E MORFOLOGICO). Por outro lado, a espécie *Gentoo* se distingue ...
+Os diagramas de caixa (boxplots) confirmam a consistência das distribuições morfométricas na amostra. As caixas interquartílicas evidenciam a amplitude do centro dos dados para cada medida física. Nota-se a semelhante distribuição, entre as espécies *Adelie* e *Chinstrap,* para características como massa corporal, tamanho da nadadeira, e profundidade do bico que pode ser explicada pela (CITAR PONTO ECOLOGICO E MORFOLOGICO). Por outro lado, a espécie *Gentoo* se distingue ...
 
 ------------------------------------------------------------------------
 
@@ -194,18 +208,18 @@ ggplot(dados_longos, aes(x = species, y = valor, color = species)) +
 
 #### 4.2.1 Variável Sexo
 
-Percebe-se que, na Figura 1, possuímos uma parcela de especímes que não possuem seu sexo identificado. Com isso, avaliaremos o nível de importância dessa varíavel afim de tomar uma decisão quanto à remoção dos espécimes com informações faltantes ou à inclusão desses espécifes ao modelo
+Percebe-se que, na Figura 1, possuímos uma parcela de espécimes que não possuem seu sexo identificado. Com isso, avaliaremos o nível de importância dessa variável a fim de tomar uma decisão quanto à remoção dos espécimes com informações faltantes ou à inclusão desses espécimes ao modelo.
 
-$$\\Considerando \ as \ seguintes \ hipóteses:
-\\
-H_0: \mu male = \mu female
-\\
-H1: \mu male \neq \mu female
-\\$$
+Considerando as seguintes hipóteses:
 
-Ao realizarmos um teste t de Student entre para a variável descrita, rejeitamos a hipótese nula de igualdade entre as médias, por termos obtido t = 4,801 e p \< 0,001. Há evidências suficientes que indicam uma associação entre o sexo e o tamanho da nadadeira.
+$$\begin{aligned}
+H_0&: \mu_{\text{male}} = \mu_{\text{female}} \\
+H_1&: \mu_{\text{male}} \neq \mu_{\text{female}}
+\end{aligned}$$
 
-Ao realizarmos a aplicação do Coeficiente de Cohen, demonstramos que a variável *sexo* possui alta relevância preditiva e explicativa em relação ao comprimento da nadadeira, o que inviabiliza a exclusão da coluna inteira do conjunto de dados.
+Ao realizarmos um teste t de Student para a variável descrita, rejeitamos a hipótese nula de igualdade entre as médias, por termos obtido t = 4,801 e p \< 0,001. Há evidências suficientes que indicam uma associação entre o sexo e o tamanho da nadadeira.
+
+Ao realizarmos a aplicação do Coeficiente de Cohen, demonstramos que a variável sexo possui alta relevância preditiva e explicativa em relação ao comprimento da nadadeira, o que inviabiliza a exclusão da coluna inteira do conjunto de dados.
 
 A variável apresentou 11 registros ausentes (NaN), o que corresponde a aproximadamente 3,2% da base total. Na literatura de análise de dados, proporções de dados faltantes inferiores a 5% são frequentemente tratadas através da exclusão das observações, já que a perda de poder estatístico é negligenciável.
 
@@ -228,9 +242,9 @@ ggplot(dados, aes(x = factor(year), y = flipper_length_mm, color = factor(year))
   
   theme_minimal() +
   theme(
-    plot.title = element_text(size = 13, face = "bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 10, color = "grey40", hjust = 0.5),
-    legend.position = "none", # Oculta a legenda pois o eixo X já explica
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 8, color = "grey40", hjust = 0.5),
+    legend.position = "none", 
     panel.grid.minor = element_blank()
   )
 ```
@@ -255,11 +269,11 @@ ggcorrplot(matriz_corr,
            title = "Figura 4: Matriz de Correlação",
            ggtheme = theme_minimal()) +     
   theme(
-    plot.title = element_text(size = 12, face = "bold", hjust = 0.5)
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.5)
   )
 ```
 
-(CITAR BODY_MASS e BILL_LENGTH como variáveis explicativas mais promissoras)
+A Figura 4 apresenta ...
 
 ```{r scatterplots multiplos, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
@@ -297,9 +311,38 @@ p_agregado <- ggplot(dados, aes(flipper_length_mm, body_mass_g)) +
     x = "Comprimento da nadadeira (mm)", y = "Massa corporal (g)"
   )
 
+  theme(
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.6)
+  )
+
 p_agregado
 ```
 
-## Construção do Modelo
+## 5. Seleção de Variáveis e Regressão dos modelos
 
 [text] e [formula_modelo completo]
+
+```{r iniciando modelagem}
+# Tratamento justificado anteriormente
+dados_modelados <- dados |>
+  select(-year) |>
+  filter(!is.na(sex))
+```
+```{r realizando teste ANOVA}
+modelo_sem_especie <- lm(flipper_length_mm ~ bill_length_mm + bill_depth_mm + body_mass_g + island + sex, data = dados_modelados)
+modelo_completo <- lm(flipper_length_mm ~ bill_length_mm + bill_depth_mm + body_mass_g + species + island + sex, data = dados_modelados)
+anova(modelo_sem_especie, modelo_completo)
+```
+Para validar estatisticamente a inclusão da variável qualitativa correspondente à espécie do pinguim, realizou-se uma Análise de Variância (ANOVA) comparando um modelo restrito (sem a referida variável) e o modelo completo. O teste F indicou uma redução significativa na soma dos quadrados dos resíduos (RSS) no modelo completo. Com uma estatística $F = 37.914$ e um valor de $p < 0.001$, rejeitamos a hipótese nula de que os dois modelos possuem a mesma capacidade explicativa. Conclui-se, portanto, que a característica biológica da espécie contribui de forma estatisticamente significativa para a predição do comprimento da nadadeira, justificando sua permanência na regressão final.
+
+```{r modelo vencedor}
+# Ajustando o Modelo Vencedor descoberto pelo pipeline de validação cruzada
+modelo_vencedor <- lm(
+  flipper_length_mm ~ species + bill_length_mm + bill_depth_mm + body_mass_g, 
+  data = dados_modelados
+)
+
+summary(modelo_vencedor)
+```
+##### Seleção do Modelo via Validação Cruzada Exaustiva
+Para determinar a combinação ideal de variáveis preditoras, realizou-se preliminarmente uma busca exaustiva (Best Subset Selection) avaliada por Validação Cruzada K-Fold ($k=5$). O modelo que minimizou o Erro Quadrático Médio (RMSE = 5.29 mm) foi composto pelas variáveis: species, bill_length_mm, bill_depth_mm e body_mass_g.Para garantir a robustez dessa escolha, os resíduos dos folds foram submetidos a um teste t pareado com correção de Nadeau-Bengio. O modelo selecionado demonstrou superioridade estatisticamente significativa ($p = 0.02$) contra um modelo restrito apenas a variáveis contínuas, consolidando a importância de mesclar a morfologia do bico e da massa com a categorização da espécie. As variáveis sex e island foram descartadas por não apresentarem ganho preditivo significativo nesta configuração.
