@@ -58,20 +58,21 @@ Pergunta formulada:
 A análise estrutura-se em quatro etapas: (i) exploração dos dados, ausências e correlações; (ii) ajuste do modelo inicial e avaliação de multicolinearidade; (iii) seleção do modelo final via validação cruzada $k$-fold e testes de hipótese; e (iv) diagnóstico dos pressupostos dos resíduos, complementado pela construção de intervalos de confiança e de predição.
 
 ### 2.1 Modelo inicial de regressão linear múltipla
-Seja yi o tamanho da nadadeira do i-ésimo pinguin. O modelo inicial, com todas as variáveis explicativas disponíveis, é dado por
-$$\begin{aligned}
+
+Seja yi o tamanho da nadadeira do i-ésimo pinguin. O modelo inicial, com todas as variáveis explicativas disponíveis, é dado por $$\begin{aligned}
 yi = β_0 + β_1tamBico + β_2 tamBico + β_3 profundBico + β_4 massaCorp + β_5 chinstrap + β_6 gentoo + εi,
-\end{aligned}$$
-em que Chinstrap e Gentoo são indicadoras da espécie do i-ésimo pinguin (Adelie como categoria de referência) e $εi$ segue as suposições usuais do MRLM: média nula, variância constante, independência e normalidade. A multicolinearidade entre as variáveis explicativas foi avaliada pelo fator de inflação de variância, $VIF_j = 1/(1 − R^2_j )$, em que $R^2_j$ é o coeficiente de determinação da regressão de $X_j$ sobre as demais explicativas; $VIF_j > 10$ indica multicolinearidade severa. A seleção do modelo final entre os candidatos foi conduzida por procedimento (ALTERAR) stepwise baseado no Critério de (CITAR CRITERIO), $AIC = −2 log( ˆL) + 2k$, priorizando, entre modelos de ajuste equivalente, aquele livre de multicolinearidade relevante.
+\end{aligned}$$ em que Chinstrap e Gentoo são indicadoras da espécie do i-ésimo pinguin (Adelie como categoria de referência) e $εi$ segue as suposições usuais do MRLM: média nula, variância constante, independência e normalidade. A multicolinearidade entre as variáveis explicativas foi avaliada pelo fator de inflação de variância, $VIF_j = 1/(1 − R^2_j )$, em que $R^2_j$ é o coeficiente de determinação da regressão de $X_j$ sobre as demais explicativas; $VIF_j > 10$ indica multicolinearidade severa. A seleção do modelo final entre os candidatos foi conduzida por procedimento (ALTERAR) stepwise baseado no Critério de (CITAR CRITERIO), $AIC = −2 log( ˆL) + 2k$, priorizando, entre modelos de ajuste equivalente, aquele livre de multicolinearidade relevante.
 
 ### 2.2 Diagnóstico de Suposições
+
 A validação do modelo vencedor ancorou-se na verificação gráfica e formal dos pressupostos clássicos dos resíduos:
 
-* **Linearidade e Homocedasticidade:** Avaliadas pelo diagrama de resíduos versus valores ajustados e testadas pelo Teste de Breusch-Pagan ($H_0$: variância constante).
-* **Normalidade dos Erros:** Inspecionada pelo gráfico Q-Q Plot e submetida aos testes formais de Jarque-Bera e Shapiro-Wilk ($H_0$: distribuição normal dos erros).
-* **Independência dos Erros:** Verificada pelo Teste de Durbin-Watson ($H_0$: ausência de autocorrelação nos resíduos).
+- **Linearidade e Homocedasticidade:** Avaliadas pelo diagrama de resíduos versus valores ajustados e testadas pelo Teste de Breusch-Pagan ($H_0$: variância constante).
+- **Normalidade dos Erros:** Inspecionada pelo gráfico Q-Q Plot e submetida aos testes formais de Jarque-Bera e Shapiro-Wilk ($H_0$: distribuição normal dos erros).
+- **Independência dos Erros:** Verificada pelo Teste de Durbin-Watson ($H_0$: ausência de autocorrelação nos resíduos).
 
 ### 2.3 Critérios de Seleção e Validação Cruzada
+
 Para prevenir o superajuste (*overfitting*) e priorizar a parcimônia, os modelos candidatos foram avaliados pelo Critério de Informação de Akaike (AIC), que equilibra qualidade de ajuste e quantidade de parâmetros.
 
 A capacidade de generalização foi mensurada por Validação Cruzada $K$-Fold ($k = 5$) com base no Erro Quadrático Médio de Predição (RMSE). Para comparar os modelos concorrentes neutralizando a dependência entre as dobras de treino e teste, aplicou-se o teste $t$ pareado com a correção de variância de Nadeau-Bengio:
@@ -79,7 +80,9 @@ A capacidade de generalização foi mensurada por Validação Cruzada $K$-Fold (
 $$\sigma^2_{\text{corrigida}} = \left( \frac{1}{k} + \frac{n_{\text{teste}}}{n_{\text{treino}}} \right) s^2_{\text{diferença}}$$
 
 ## 3. Descrição da base
+
 A base de dados Palmer Penguins possui n = 344 espécimes registrados
+
 ```{r dicionario_variaveis, echo=FALSE}
 dict <- tibble::tribble(
   ~Variável, ~Tipo, ~Papel, ~Definição, ~Unidade,
@@ -93,7 +96,6 @@ dict <- tibble::tribble(
   "year", "Inteira", "Descartada", "Ano em que a observação foi registrada", ""
 )
 
-# Gerando a tabela com formatação nativa para PDF
 knitr::kable(
   dict, 
   caption = "Dicionário de variáveis",
@@ -108,10 +110,8 @@ knitr::kable(
 ### 4.1 Distribuição das variáveis
 
 ```{r setup, include=FALSE}
-# include=FALSE roda e esconde no arquivo
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
-# Carregando todas as bibliotecas
 library(dplyr)
 library(ggplot2)
 library(patchwork)
@@ -333,6 +333,8 @@ p_agregado <- ggplot(dados, aes(flipper_length_mm, body_mass_g)) +
 p_agregado
 ```
 
+------------------------------------------------------------------------
+
 ## 5. Seleção de Variáveis e Regressão dos modelos
 
 [text] e [formula_modelo_A]
@@ -431,10 +433,8 @@ library(ggplot2)
 library(broom)
 library(patchwork)
 
-# Extrai os resíduos (.resid) e os valores ajustados/preditos (.fitted)
 dados_diagnostico <- augment(modelo_vencedor)
 
-# Gráfico 1: Resíduos vs Ajustados (Homocedasticidade)
 graf_residuos <- ggplot(dados_diagnostico, aes(x = .fitted, y = .resid)) +
   geom_point(alpha = 0.6) +
   geom_hline(yintercept = 0, color = "red", linetype = "dashed", linewidth = 1) +
@@ -446,7 +446,6 @@ graf_residuos <- ggplot(dados_diagnostico, aes(x = .fitted, y = .resid)) +
   theme_minimal() +
   theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
 
-# Gráfico 2: Q-Q Plot (Normalidade)
 graf_qq <- ggplot(dados_diagnostico, aes(sample = .resid)) +
   stat_qq(alpha = 0.6) +
   stat_qq_line(color = "red", linetype = "dashed", linewidth = 1) +
@@ -458,9 +457,12 @@ graf_qq <- ggplot(dados_diagnostico, aes(sample = .resid)) +
   theme_minimal() +
   theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
 
-# Renderiza lado a lado usando patchwork
 graf_residuos | graf_qq
 ```
+
+Com um valor-p de 0,0085, constata-se a presença de heterocedasticidade estrutural pela checagem de homocedasticidade do teste de *Breusch-Pagan*. É notável quando percebe-se que a variância dos resíduos não é constante, mas sim influenciada pelos valores ajustados da variável resposta. Considerando o contexto biológico, é esperado que espécimes maiores apresentem uma variabilidade natural superior à de espécimes menores.
+
+Outrossim, o resultado do teste de *Jarque-Bera* com p-valor igual à 0,0285 aponta para desvios na distribuição dos resíduos em relação a uma curva normal perfeita. Contudo, considerando o tamanho da amostra após a limpeza dos dados, o Teorema do Limite Central atua para atenuar o impacto desse desvio, tornando as estimativas dos coeficientes assintoticamente válidas.
 
 ```{r testes_diagnostico, echo=FALSE, warning=FALSE, message=FALSE}
 library(lmtest)
@@ -470,12 +472,10 @@ library(knitr)
 library(kableExtra)
 library(dplyr)
 
-# Executando os testes formais de diagnóstico
 teste_bp <- bptest(modelo_vencedor)
 teste_jb <- jarque.bera.test(residuals(modelo_vencedor))
 teste_dw <- dwtest(modelo_vencedor)
 
-# Montando o dataframe com os resultados
 tabela_testes <- tibble::tribble(
   ~`Teste Diagnóstico`, ~`Premissa Avaliada`, ~`Estatística`, ~`Valor-p`,
   "Breusch-Pagan", "Homocedasticidade", teste_bp$statistic, teste_bp$p.value,
@@ -483,7 +483,6 @@ tabela_testes <- tibble::tribble(
   "Durbin-Watson", "Independência (Autocorr.)", teste_dw$statistic, teste_dw$p.value
 )
 
-# Formatando a tabela final para o PDF
 tabela_testes |>
   mutate(
     Estatística = round(Estatística, 4),
@@ -496,6 +495,9 @@ tabela_testes |>
   ) |>
   kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
+
+A Tabela 5 (ou 4 tenho q conferir) apresenta os resultados dos testes estatísticos formais aplicados aos resíduos do modelo selecionado. A análise indica que, ao nível de 5% de significância, houve rejeição das hipóteses nulas para as três premissas clássicas do modelo de Mínimos Quadrados Ordinários.
+
 ```{r residuos_especie, echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="80%"}
 library(ggplot2)
 library(broom)
@@ -522,3 +524,7 @@ ggplot(dados_completos_diagnostico, aes(x = .fitted, y = .resid, color = species
     legend.position = "right"
   )
 ```
+
+Como já previsto pelo contexto da base de dados analisada, nota-se não apenas a assimetria de diferentes espécimes representadas no gráfico, como a tendência da espécie maior *Gentoo* ser menos dispersa que as demais espécies *Adelie* e *Chinstrap*
+
+## 7. Conclusões
