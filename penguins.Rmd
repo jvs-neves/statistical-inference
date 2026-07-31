@@ -1,6 +1,4 @@
 ---
-title: "Penguins Analysis"
-author: "João Neves"
 output:
   pdf_document: 
     latex_engine: xelatex
@@ -59,7 +57,7 @@ $$\begin{aligned}
 yi = β_0 + β_1tamBico + β_2 tamBico + β_3 profundBico + β_4 massaCorp + β_5 chinstrap + β_6 gentoo + εi,
 \end{aligned}$$
 
-em que *Chinstrap* e *Gentoo* são indicadoras da espécie do i-ésimo pinguin (*Adelie* como categoria de referência) e εi segue as suposições usuais do MRLM: média nula, variância constante, independência e normalidade. A multicolinearidade entre as variáveis explicativas foi avaliada pelo fator de inflação de variância, VIF_j = 1/(1 − R\^2_j ), em que R^2_j é o coeficiente de determinação da regressão de X_j sobre as demais explicativas; VIF_j \> 10 indica multicolinearidade severa. A seleção do modelo final entre os candidatos foi conduzida por procedimento *stepwise* baseado no Critério de (CITAR CRITERIO), AIC = −2 log( ˆL) + 2k, priorizando, entre modelos de ajuste equivalente, aquele livre de multicolinearidade relevante.
+em que *Chinstrap* e *Gentoo* são indicadoras da espécie do i-ésimo pinguin (*Adelie* como categoria de referência) e $εi$ segue as suposições usuais do MRLM: média nula, variância constante, independência e normalidade. A multicolinearidade entre as variáveis explicativas foi avaliada pelo fator de inflação de variância, $VIF_j = 1/(1 − R^2_j )$, em que $R^2_j$ é o coeficiente de determinação da regressão de $X_j$ sobre as demais explicativas; $VIF_j > 10$ indica multicolinearidade severa. A seleção do modelo final entre os candidatos foi conduzida por procedimento (ALTERAR) *stepwise* baseado no Critério de (CITAR CRITERIO), $AIC = −2 log( ˆL) + 2k$, priorizando, entre modelos de ajuste equivalente, aquele livre de multicolinearidade relevante.
 
 ## 3. Descrição da base
 A base de dados Palmer Penguins possui n = 344 espécimes registrados
@@ -200,7 +198,7 @@ ggplot(dados_longos, aes(x = species, y = valor, color = species)) +
   guides(fill = "none")
 ```
 
-Os diagramas de caixa (boxplots) confirmam a consistência das distribuições morfométricas na amostra. As caixas interquartílicas evidenciam a amplitude do centro dos dados para cada medida física. Nota-se a semelhante distribuição, entre as espécies *Adelie* e *Chinstrap,* para características como massa corporal, tamanho da nadadeira, e profundidade do bico que pode ser explicada pela (CITAR PONTO ECOLOGICO E MORFOLOGICO). Por outro lado, a espécie *Gentoo* se distingue ...
+Os diagramas de caixa confirmam a consistência das distribuições morfométricas na amostra. As caixas interquartílicas evidenciam a amplitude do centro dos dados para cada medida física. Nota-se a semelhante distribuição, entre as espécies *Adelie* e *Chinstrap,* para características como massa corporal, tamanho da nadadeira, e profundidade do bico que pode ser explicada pela (CITAR PONTO ECOLOGICO E MORFOLOGICO). Por outro lado, a espécie *Gentoo* se distingue ...
 
 ------------------------------------------------------------------------
 
@@ -249,7 +247,7 @@ ggplot(dados, aes(x = factor(year), y = flipper_length_mm, color = factor(year))
   )
 ```
 
-> A variável em questão, não contribui com a explicabilidade da variável resposta visto que, embora o gráfico revele uma sutil variação negativa na mediana do ano de 2007 e uma assimetria na distribuição dos anos subsequentes (com maior concentração de pontos entre o terceiro e quarto quartis), essas nuances visuais não justificam a utilização dessa variável no modelo. A concentração assimétrica na porção superior das caixas reflete, na verdade, uma distribuição bimodal causada pela sobreposição das diferentes espécies na amostra anual, especificamente a presença da espécie Gentoo, cujos espécimes possuem dimensões naturalmente maiores. Dado que essa variação milimétrica interanual não oferece ganho preditivo ou explicativo relevante em comparação com as variáveis biológicas principais (*Sexo* e *Espécie*), a desconsideração da variável temporal *Ano* não contribuirá para perda significativa de informação.
+A variável em questão, não contribui com a explicabilidade da variável resposta visto que, embora o gráfico revele uma sutil variação negativa na mediana do ano de 2007 e uma assimetria na distribuição dos anos subsequentes (com maior concentração de pontos entre o terceiro e quarto quartis), essas nuances visuais não justificam a utilização dessa variável no modelo. A concentração assimétrica na porção superior das caixas reflete, na verdade, uma distribuição bimodal causada pela sobreposição das diferentes espécies na amostra anual, especificamente a presença da espécie Gentoo, cujos espécimes possuem dimensões naturalmente maiores. Dado que essa variação milimétrica interanual não oferece ganho preditivo ou explicativo relevante em comparação com as variáveis biológicas principais (*Sexo* e *Espécie*), a desconsideração da variável temporal *Ano* não contribuirá para perda significativa de informação.
 
 ------------------------------------------------------------------------
 
@@ -311,38 +309,195 @@ p_agregado <- ggplot(dados, aes(flipper_length_mm, body_mass_g)) +
     x = "Comprimento da nadadeira (mm)", y = "Massa corporal (g)"
   )
 
-  theme(
-    plot.title = element_text(size = 11, face = "bold", hjust = 0.6)
-  )
-
 p_agregado
 ```
 
 ## 5. Seleção de Variáveis e Regressão dos modelos
 
-[text] e [formula_modelo completo]
+[text] e [formula_modelo_A]
 
-```{r iniciando modelagem}
-# Tratamento justificado anteriormente
+```{r tratamento de dados pré modelagem, echo=FALSE}
 dados_modelados <- dados |>
   select(-year) |>
   filter(!is.na(sex))
 ```
-```{r realizando teste ANOVA}
+
+```{r anova_modelos, echo=FALSE, warning=FALSE, message=FALSE}
+library(broom)
+library(dplyr)
+library(kableExtra)
+
 modelo_sem_especie <- lm(flipper_length_mm ~ bill_length_mm + bill_depth_mm + body_mass_g + island + sex, data = dados_modelados)
+
 modelo_completo <- lm(flipper_length_mm ~ bill_length_mm + bill_depth_mm + body_mass_g + species + island + sex, data = dados_modelados)
-anova(modelo_sem_especie, modelo_completo)
+
+anova(modelo_sem_especie, modelo_completo) |>
+  tidy() |>
+  mutate(
+    term = c("Modelo Sem Espécie", "Modelo Com Espécie"), 
+    p.value = format.pval(p.value, eps = 0.001, decimal.mark = ",")
+  ) |>
+  knitr::kable(
+    col.names = c("Modelo", "GL Res.", "RSS", "GL", "Soma dos Quadrados", "Estat. F", "Valor-p"),
+    caption = "Análise de Variância comparando o modelo restrito e o completo.",
+    booktabs = TRUE,
+    digits = 2,
+    align = c("l", "c", "c", "c", "c", "c", "c") 
+  ) |>
+  kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
+
 Para validar estatisticamente a inclusão da variável qualitativa correspondente à espécie do pinguim, realizou-se uma Análise de Variância (ANOVA) comparando um modelo restrito (sem a referida variável) e o modelo completo. O teste F indicou uma redução significativa na soma dos quadrados dos resíduos (RSS) no modelo completo. Com uma estatística $F = 37.914$ e um valor de $p < 0.001$, rejeitamos a hipótese nula de que os dois modelos possuem a mesma capacidade explicativa. Conclui-se, portanto, que a característica biológica da espécie contribui de forma estatisticamente significativa para a predição do comprimento da nadadeira, justificando sua permanência na regressão final.
 
-```{r modelo vencedor}
-# Ajustando o Modelo Vencedor descoberto pelo pipeline de validação cruzada
+```{r modelo_vencedor, echo=FALSE, warning=FALSE, message=FALSE}
+library(broom)
+library(dplyr)
+library(kableExtra)
+
 modelo_vencedor <- lm(
   flipper_length_mm ~ species + bill_length_mm + bill_depth_mm + body_mass_g, 
   data = dados_modelados
 )
 
-summary(modelo_vencedor)
+tidy(modelo_vencedor) |> # Extração dos coeficientes
+  mutate(
+    term = c("Intercepto", "Espécie: Chinstrap", "Espécie: Gentoo", 
+             "Comprimento do Bico", "Profundidade do Bico", "Massa Corporal"),
+    p.value = format.pval(p.value, eps = 0.001, decimal.mark = ",")
+  ) |>
+  knitr::kable(
+    col.names = c("Variável", "Estimativa", "Erro Padrão", "Estatística t", "Valor-p"),
+    caption = "Estimativas dos coeficientes do modelo vencedor.",
+    booktabs = TRUE,
+    digits = 4, 
+    align = c("l", "c", "c", "c", "c")
+  ) |>
+  kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
-##### Seleção do Modelo via Validação Cruzada Exaustiva
-Para determinar a combinação ideal de variáveis preditoras, realizou-se preliminarmente uma busca exaustiva (Best Subset Selection) avaliada por Validação Cruzada K-Fold ($k=5$). O modelo que minimizou o Erro Quadrático Médio (RMSE = 5.29 mm) foi composto pelas variáveis: species, bill_length_mm, bill_depth_mm e body_mass_g.Para garantir a robustez dessa escolha, os resíduos dos folds foram submetidos a um teste t pareado com correção de Nadeau-Bengio. O modelo selecionado demonstrou superioridade estatisticamente significativa ($p = 0.02$) contra um modelo restrito apenas a variáveis contínuas, consolidando a importância de mesclar a morfologia do bico e da massa com a categorização da espécie. As variáveis sex e island foram descartadas por não apresentarem ganho preditivo significativo nesta configuração.
+
+##### 5.1 Seleção do Modelo via Validação Cruzada Exaustiva
+
+Para determinar a combinação ideal de variáveis preditoras, realizou-se preliminarmente uma busca exaustiva, pela combinação de variáveis à distintos modelos, avaliada por Validação Cruzada K-Fold ($k=5$). O modelo que minimizou o Erro Quadrático Médio (RMSE = 5.29 mm) foi composto pelas variáveis: species, bill_length_mm, bill_depth_mm e body_mass_g. Para garantir a robustez dessa escolha, os resíduos dos folds foram submetidos a um teste t pareado com correção de Nadeau-Bengio, o qual ajusta a variância estimada para compensar a dependência entre folds, buscando evitar a inflação de falsos positivos. O modelo selecionado demonstrou superioridade estatisticamente significativa ($p = 0.02$) contra um modelo restrito apenas a variáveis contínuas, consolidando a importância de mesclar a morfologia do bico e da massa com a categorização da espécie. As variáveis sex e island foram descartadas por não apresentarem ganho preditivo significativo nesta configuração.
+
+```{r tabela_comparativa_modelos, echo=FALSE, warning=FALSE, message=FALSE}
+library(kableExtra)
+
+comparativo <- tibble::tribble(
+  ~Modelo, ~`Variáveis Preditores`, ~`RMSE Médio (K-Fold)`,
+  "Vencedor (Completo)", "Espécie, Bico (Comprimento e Profundidade), Massa", "5.29 mm",
+  "Modelo A (Qualitativo)", "Espécie, Ilha, Sexo", "5.77 mm",
+  "Modelo B (Quantitativo)", "Bico (Comprimento e Profundidade), Massa", "5.86 mm"
+)
+
+knitr::kable(
+  comparativo, 
+  align = c("l", "l", "c"), 
+  booktabs = TRUE,               
+  linesep = "",                  
+  caption = "Comparativo de Desempenho Preditivo entre Subconjuntos de Variáveis"
+) |>
+  kable_styling(
+    latex_options = c("HOLD_position"), 
+    font_size = 10                      
+  ) |>
+  column_spec(2, width = "8cm") 
+```
+
+## 6. Análise de Residuos
+
+```{r graficos_residuos, echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="90%", fig.width=10, fig.height=4.5}
+library(ggplot2)
+library(broom)
+library(patchwork)
+
+# Extrai os resíduos (.resid) e os valores ajustados/preditos (.fitted)
+dados_diagnostico <- augment(modelo_vencedor)
+
+# Gráfico 1: Resíduos vs Ajustados (Homocedasticidade)
+graf_residuos <- ggplot(dados_diagnostico, aes(x = .fitted, y = .resid)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Resíduos vs. Valores Ajustados\n(Checagem de Homocedasticidade)",
+    x = "Valores Preditos (mm)",
+    y = "Resíduos"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
+
+# Gráfico 2: Q-Q Plot (Normalidade)
+graf_qq <- ggplot(dados_diagnostico, aes(sample = .resid)) +
+  stat_qq(alpha = 0.6) +
+  stat_qq_line(color = "red", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Q-Q Plot\n(Checagem de Normalidade)",
+    x = "Quantis Teóricos",
+    y = "Quantis Amostrais"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
+
+# Renderiza lado a lado usando patchwork
+graf_residuos | graf_qq
+```
+
+```{r testes_diagnostico, echo=FALSE, warning=FALSE, message=FALSE}
+library(lmtest)
+library(tseries)
+library(tibble)
+library(knitr)
+library(kableExtra)
+library(dplyr)
+
+# Executando os testes formais de diagnóstico
+teste_bp <- bptest(modelo_vencedor)
+teste_jb <- jarque.bera.test(residuals(modelo_vencedor))
+teste_dw <- dwtest(modelo_vencedor)
+
+# Montando o dataframe com os resultados
+tabela_testes <- tibble::tribble(
+  ~`Teste Diagnóstico`, ~`Premissa Avaliada`, ~`Estatística`, ~`Valor-p`,
+  "Breusch-Pagan", "Homocedasticidade", teste_bp$statistic, teste_bp$p.value,
+  "Jarque-Bera", "Normalidade", teste_jb$statistic, teste_jb$p.value,
+  "Durbin-Watson", "Independência (Autocorr.)", teste_dw$statistic, teste_dw$p.value
+)
+
+# Formatando a tabela final para o PDF
+tabela_testes |>
+  mutate(
+    Estatística = round(Estatística, 4),
+    `Valor-p` = format.pval(`Valor-p`, eps = 0.001, decimal.mark = ",")
+  ) |>
+  knitr::kable(
+    caption = "Testes Formais de Diagnóstico dos Resíduos do Modelo Vencedor.",
+    booktabs = TRUE,
+    align = c("l", "l", "c", "c")
+  ) |>
+  kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+```
+```{r residuos_especie, echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="80%"}
+library(ggplot2)
+library(broom)
+
+dados_completos_diagnostico <- augment(modelo_vencedor, data = dados_modelados)
+
+ggplot(dados_completos_diagnostico, aes(x = .fitted, y = .resid, color = species)) +
+  geom_point(alpha = 0.7, size = 2.5) + 
+  geom_hline(yintercept = 0, color = "black", linetype = "dashed", linewidth = 1) +
+  scale_color_brewer(palette = "Set1") + 
+  labs(
+    title = "Resíduos vs. Valores Ajustados por Espécie",
+    x = "Valores Preditos (Comprimento da Nadadeira mm)",
+    y = "Resíduos",
+    color = "Espécie" 
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
+    axis.title = element_text(size = 11),
+    # Recria o grid pontilhado do matplotlib
+    panel.grid.major = element_line(linetype = "dotted", color = "gray80", linewidth = 0.6),
+    panel.grid.minor = element_blank(),
+    legend.position = "right"
+  )
+```
