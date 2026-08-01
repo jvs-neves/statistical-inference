@@ -1,7 +1,8 @@
 ---
 output:
-  pdf_document: 
+  bookdown::pdf_document2: 
     latex_engine: xelatex
+    number_sections: false # Removendo numerações automáticas de seções
   html_document: default
 ---
 
@@ -92,7 +93,7 @@ $$\sigma^2_{\text{corrigida}} = \left( \frac{1}{k} + \frac{n_{\text{teste}}}{n_{
 
 A base de dados Palmer Penguins possui n = 344 espécimes registrados
 
-```{r dicionario_variaveis, echo=FALSE}
+```{r dicionario-variaveis, echo=FALSE}
 dict <- tibble::tribble(
   ~Variável, ~Tipo, ~Papel, ~Definição, ~Unidade,
   "species", "Categórica", "Preditor", "Espécie do pinguim (Adelie, Chinstrap, Gentoo)", "",
@@ -131,7 +132,8 @@ library(tidyr)
 library(ggcorrplot)
 ```
 
-```{r importando base de dados, echo=FALSE}
+```{r importando-base-de-dados, echo=FALSE, include=FALSE}
+# Deixando INCLUDE=FALSE, pois nós já descrevemos os dados anteriormente
 dados <- read.csv("06_Pinguins_comprimento_nadadeira.csv")
 
 knitr::kable(
@@ -142,7 +144,7 @@ knitr::kable(
   )
 ```
 
-```{r analise de qualidade de var. qualitativas, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r analise-de-qualidade-de-var-qualitativas, fig.cap = "Distribuição de variáveis qualitativas", echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 
 cat_cols <- c('species', 'island', 'sex')
 titulos <- c('Espécie', 'Ilha', 'Sexo')
@@ -186,7 +188,7 @@ grafico_final <- (graficos[[1]] | graficos[[2]] | graficos[[3]]) +
 grafico_final
 ```
 
-```{r boxplots, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r boxplots, fig.cap="Distribuição de variáveis quantitativas", echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
 
 dados_longos <- dados |>
@@ -231,7 +233,7 @@ ggplot(dados_longos, aes(x = species, y = valor, color = species)) +
   guides(fill = "none")
 ```
 
-Os diagramas de caixa confirmam a consistência das distribuições morfométricas na amostra. As caixas interquartílicas evidenciam a amplitude do centro dos dados para cada medida física. Nota-se a semelhante distribuição, entre as espécies *Adelie* e *Chinstrap*, para características como massa corporal, tamanho da nadadeira e profundidade do bico, fato que pode ser explicado pela **convergência ecomorfológica e sobreposição parcial de nicho trófico entre ambas as espécies**, que compartilham hábitos de forrageamento de menor profundidade em relação aos *Gentoo*. Por outro lado, a espécie *Gentoo* se distingue acentuadamente por apresentar maior massa corporal e nadadeiras significativamente mais longas (gigantismo relativo dentro do gênero), porém acompanhadas por bicos proporcionalmente mais rasos (*bill depth*).
+Os diagramas de caixa da Figura \@ref(fig: boxplots) confirmam a consistência das distribuições morfométricas na amostra. As caixas interquartílicas evidenciam a amplitude do centro dos dados para cada medida física. Nota-se a semelhante distribuição, entre as espécies *Adelie* e *Chinstrap*, para características como massa corporal, tamanho da nadadeira e profundidade do bico, fato que pode ser explicado pela **convergência ecomorfológica e sobreposição parcial de nicho trófico entre ambas as espécies**, que compartilham hábitos de forrageamento de menor profundidade em relação aos *Gentoo*. Por outro lado, a espécie *Gentoo* se distingue acentuadamente por apresentar maior massa corporal e nadadeiras significativamente mais longas (gigantismo relativo dentro do gênero), porém acompanhadas por bicos proporcionalmente mais rasos (*bill depth*).
 
 ------------------------------------------------------------------------
 
@@ -239,7 +241,7 @@ Os diagramas de caixa confirmam a consistência das distribuições morfométric
 
 #### 4.2.1 Variável Sexo
 
-Percebe-se que, na Figura 1, possuímos uma parcela de espécimes que não possuem seu sexo identificado. Com isso, avaliaremos o nível de importância dessa variável a fim de tomar uma decisão quanto à remoção dos espécimes com informações faltantes ou à inclusão desses espécimes ao modelo.
+Percebe-se que, na Figura \@ref(fig:analise-de-qualidade-de-var-qualitativas), possuímos uma parcela de espécimes que não possuem seu sexo identificado. Com isso, avaliaremos o nível de importância dessa variável a fim de tomar uma decisão quanto à remoção dos espécimes com informações faltantes ou à inclusão desses espécimes ao modelo.
 
 Considerando as seguintes hipóteses:
 
@@ -256,7 +258,7 @@ A variável apresentou 11 registros ausentes (NaN), o que corresponde a aproxima
 
 #### 4.2.2 Variável Ano
 
-```{r desconsiderando coluna year, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r desconsiderando-coluna-year, fig.cap="Distribuição do tamanho da nadadeiro por Ano", echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 ggplot(dados, aes(x = factor(year), y = flipper_length_mm, color = factor(year))) +
   
   geom_jitter(width = 0.2, alpha = 0.4, size = 1.5) +
@@ -280,13 +282,13 @@ ggplot(dados, aes(x = factor(year), y = flipper_length_mm, color = factor(year))
   )
 ```
 
-A variável em questão, não contribui com a explicabilidade da variável resposta visto que, embora o gráfico revele uma sutil variação negativa na mediana do ano de 2007 e uma assimetria na distribuição dos anos subsequentes (com maior concentração de pontos entre o terceiro e quarto quartis), essas nuances visuais não justificam a utilização dessa variável no modelo. A concentração assimétrica na porção superior das caixas reflete, na verdade, uma distribuição bimodal causada pela sobreposição das diferentes espécies na amostra anual, especificamente a presença da espécie Gentoo, cujos espécimes possuem dimensões naturalmente maiores. Dado que essa variação milimétrica interanual não oferece ganho preditivo ou explicativo relevante em comparação com as variáveis biológicas principais (*Sexo* e *Espécie*), a desconsideração da variável temporal *Ano* não contribuirá para perda significativa de informação.
+A variável *Ano*, da Figura \@ref(fig:desconsiderando-coluna-year), não contribui com a explicabilidade da variável resposta visto que, embora o gráfico revele uma sutil variação negativa na mediana do ano de 2007 e uma assimetria na distribuição dos anos subsequentes (com maior concentração de pontos entre o terceiro e quarto quartis), essas nuances visuais não justificam a utilização dessa variável no modelo. A concentração assimétrica na porção superior das caixas reflete, na verdade, uma distribuição bimodal causada pela sobreposição das diferentes espécies na amostra anual, especificamente a presença da espécie Gentoo, cujos espécimes possuem dimensões naturalmente maiores. Dado que essa variação milimétrica interanual não oferece ganho preditivo ou explicativo relevante em comparação com as variáveis biológicas principais (*Sexo* e *Espécie*), a desconsideração da variável temporal *Ano* não contribuirá para perda significativa de informação.
 
 ------------------------------------------------------------------------
 
 ### 4.3 Avaliação de correlação entre variáveis
 
-```{r correlacoes, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r correlacoes, fig.cap="Mapa de calor entre variáveis", echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 library(ggcorrplot)
 
 num_cols <- c('bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g')
@@ -304,9 +306,9 @@ ggcorrplot(matriz_corr,
   )
 ```
 
-A Figura 4 apresenta a matriz de correlação de Pearson entre as variáveis numéricas contínuas. Observa-se uma forte correlação positiva entre o comprimento da nadadeira (`flipper_length_mm`) e a massa corporal (`body_mass_g`) ($r = 0,87$), evidenciando que a massa é o principal preditor linear contínuo do tamanho do apêndice. O comprimento do bico (`bill_length_mm`) também exibe correlação positiva considerável ($r = 0,65$) com a variável resposta. Em contrapartida, a profundidade do bico (`bill_depth_mm`) apresenta correlação negativa com a nadadeira ($r = -0,58$), um comportamento aparente causado pela presença da espécie *Gentoo*, cujos indivíduos possuem nadadeiras longas e bicos finos.
+A Figura \@ref(fig:correlacoes) apresenta a matriz de correlação de Pearson entre as variáveis numéricas contínuas. Observa-se uma forte correlação positiva entre o comprimento da nadadeira (`flipper_length_mm`) e a massa corporal (`body_mass_g`) ($r = 0,87$), evidenciando que a massa é o principal preditor linear contínuo do tamanho do apêndice. O comprimento do bico (`bill_length_mm`) também exibe correlação positiva considerável ($r = 0,65$) com a variável resposta. Em contrapartida, a profundidade do bico (`bill_depth_mm`) apresenta correlação negativa com a nadadeira ($r = -0,58$), um comportamento aparente causado pela presença da espécie *Gentoo*, cujos indivíduos possuem nadadeiras longas e bicos finos.
 
-```{r scatterplots multiplos, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r scatterplots-multiplos, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
 
 GGally::ggpairs(
@@ -332,7 +334,7 @@ GGally::ggpairs(
 
 Pela separação de espécies, fica clara a forte e positiva correlação entre a massa corporal do pinguim e o tamanho de sua nadadeira, isso para todas as três espécies avaliadas. Ademais, vê-se uma extensão da similaridade antes comprovada nos boxplots que as espécies *Adelia* e *Chinstrap* compartilham de características intrínsecas para tamanho da nadadeira e profundidade do bico
 
-```{r correlação conjunta, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r correlação-conjunta, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 p_agregado <- ggplot(dados, aes(flipper_length_mm, body_mass_g)) +
   geom_point(color = "#397E9E", alpha = 0.65) +
   geom_smooth(method = "lm", se = TRUE, color = "#00395C", fill = "#B5E5FF") +
@@ -358,13 +360,13 @@ y_i =\;& \beta_0 + \beta_1\,\text{tamBico}_i + \beta_2\,\text{profundBico}_i
 
 em que *Chinstrap* e *Gentoo* são indicadoras da espécie (*Adelie* como referência), *Dream* e *Torgersen* são indicadoras da ilha (*Biscoe* como referência) e *male* é indicadora do sexo (*female* como referência). Antes de comparar subconjuntos de preditores por validação cruzada (Seção 5.1), avaliamos primeiro se a variável espécie — apontada na análise exploratória (Seções 4.1 e 4.3) como fortemente associada às demais medidas morfológicas — de fato acrescenta poder explicativo, comparando por ANOVA o Modelo Completo contra sua versão restrita sem espécie.
 
-```{r tratamento de dados pré modelagem, echo=FALSE}
+```{r tratamento-de-dados-pre-modelagem, echo=FALSE}
 dados_modelados <- dados |>
   select(-year) |>
   filter(!is.na(sex))
 ```
 
-```{r anova_modelos, echo=FALSE, warning=FALSE, message=FALSE}
+```{r anova-modelos, echo=FALSE, warning=FALSE, message=FALSE}
 library(broom)
 library(dplyr)
 library(kableExtra)
@@ -391,7 +393,7 @@ anova(modelo_sem_especie, modelo_completo) |>
 
 Para validar estatisticamente a inclusão da variável qualitativa correspondente à espécie do pinguim, realizou-se uma Análise de Variância (ANOVA) comparando um modelo restrito (sem a referida variável) e o modelo completo. O teste F indicou uma redução significativa na soma dos quadrados dos resíduos (RSS) no modelo completo. Com uma estatística $F = 37.914$ e um valor de $p < 0.001$, rejeitamos a hipótese nula de que os dois modelos possuem a mesma capacidade explicativa. Conclui-se, portanto, que a característica biológica da espécie contribui de forma estatisticamente significativa para a predição do comprimento da nadadeira, justificando sua permanência na regressão final.
 
-```{r modelo_vencedor, echo=FALSE, warning=FALSE, message=FALSE}
+```{r modelo-vencedor, echo=FALSE, warning=FALSE, message=FALSE}
 library(broom)
 library(dplyr)
 library(kableExtra)
@@ -417,7 +419,7 @@ tidy(modelo_vencedor) |> # Extração dos coeficientes
   kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
-```{r aic_bic_vencedor, echo=FALSE}
+```{r aic-bic-vencedor, echo=FALSE}
 ajuste <- data.frame(
   Medida = c("R² ajustado", "AIC", "BIC"),
   Valor = c(
@@ -436,11 +438,11 @@ knitr::kable(
 
 O modelo vencedor apresentou $R^2$ ajustado de 0,861, indicando que aproximadamente 86,1% da variabilidade observada no comprimento da nadadeira é explicada pelas variáveis incluídas na regressão. Os valores de AIC (2054.71) e BIC (2081.37) são apresentados como medidas complementares de ajuste e parcimônia do modelo selecionado. Como esses critérios foram calculados apenas para o modelo final, eles não foram utilizados para comparar os modelos candidatos; a seleção foi baseada no menor RMSE obtido por validação cruzada.
 
-##### 5.1 Seleção do Modelo via Validação Cruzada Exaustiva
+#### 5.1 Seleção do Modelo via Validação Cruzada Exaustiva
 
 Para determinar a combinação ideal de variáveis preditoras, realizou-se preliminarmente uma busca exaustiva, pela combinação de variáveis à distintos modelos, avaliada por Validação Cruzada K-Fold ($k=5$). O modelo que minimizou o Erro Quadrático Médio (RMSE = 5.29 mm) foi composto pelas variáveis: species, bill_length_mm, bill_depth_mm e body_mass_g. Para garantir a robustez dessa escolha, os resíduos dos folds foram submetidos a um teste t pareado com correção de Nadeau-Bengio, o qual ajusta a variância estimada para compensar a dependência entre folds, buscando evitar a inflação de falsos positivos. O modelo selecionado demonstrou superioridade estatisticamente significativa ($p = 0.02$) contra um modelo restrito apenas a variáveis contínuas, consolidando a importância de mesclar a morfologia do bico e da massa com a categorização da espécie. As variáveis sex e island foram descartadas por não apresentarem ganho preditivo significativo nesta configuração.
 
-```{r tabela_comparativa_modelos, echo=FALSE, warning=FALSE, message=FALSE}
+```{r tabela-comparativa-modelos, echo=FALSE, warning=FALSE, message=FALSE}
 library(kableExtra)
 
 comparativo <- tibble::tribble(
@@ -466,7 +468,7 @@ knitr::kable(
 
 ##### 5.2 Diagnóstico de Multicolinearidade do Modelo Vencedor
 
-```{r vif_modelo_vencedor, echo=FALSE, warning=FALSE, message=FALSE}
+```{r vif-modelo-vencedor, echo=FALSE, warning=FALSE, message=FALSE}
 library(car)
 library(dplyr)
 library(knitr)
@@ -506,47 +508,48 @@ Complementarmente, a comparação entre o modelo vencedor e o Modelo A (Qualitat
 
 ## 6. Análise de Residuos
 
-```{r graficos_residuos, echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="90%", fig.width=10, fig.height=4.5}
+```{r graficos-residuos, fig.cap="Gráficos de diagnóstico de resíduos", echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="100%", fig.width=10, fig.height=8}
 library(ggplot2)
 library(broom)
 library(patchwork)
 
-# Extrai os resíduos (.resid) e os valores ajustados/preditos (.fitted)
 dados_diagnostico <- augment(modelo_vencedor)
 
 # Gráfico 1: Resíduos vs Ajustados (Homocedasticidade)
 graf_residuos <- ggplot(dados_diagnostico, aes(x = .fitted, y = .resid)) +
   geom_point(alpha = 0.6) +
-  geom_hline(yintercept = 0, color = "red", linetype = "dashed", linewidth = 1) +
-  labs(
-    title = "Resíduos vs. Valores Ajustados\n(Checagem de Homocedasticidade)",
-    x = "Valores Preditos (mm)",
-    y = "Resíduos"
-  ) +
-  theme_minimal() +
-  theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
+  geom_hline(yintercept = 0, color = "gray50", linetype = "dashed", linewidth = 1) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", linewidth = 0.8) +
+  labs(title = "Resíduos vs. Valores Ajustados", x = "Valores Preditos (mm)", y = "Resíduos") +
+  theme_minimal() + theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
 
 # Gráfico 2: Q-Q Plot (Normalidade)
 graf_qq <- ggplot(dados_diagnostico, aes(sample = .resid)) +
   stat_qq(alpha = 0.6) +
-  stat_qq_line(color = "red", linetype = "dashed", linewidth = 1) +
-  labs(
-    title = "Q-Q Plot\n(Checagem de Normalidade)",
-    x = "Quantis Teóricos",
-    y = "Quantis Amostrais"
-  ) +
-  theme_minimal() +
-  theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
+  stat_qq_line(color = "gray50", linetype = "dashed", linewidth = 1) +
+  labs(title = "Q-Q Plot", x = "Quantis Teóricos", y = "Quantis Amostrais") +
+  theme_minimal() + theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
 
-# Renderiza lado a lado usando patchwork
-graf_residuos | graf_qq
+# Gráfico 3: Scale-Location (Verificação de Dispersão)
+graf_scale <- ggplot(dados_diagnostico, aes(x = .fitted, y = sqrt(abs(.std.resid)))) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", linewidth = 0.8) +
+  labs(title = "Scale-Location", x = "Valores Preditos (mm)", y = "Resíduos Padronizados") +
+  theme_minimal() + theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
+
+# Gráfico 4: Resíduos vs Leverage (Pontos de Influência)
+graf_leverage <- ggplot(dados_diagnostico, aes(x = .hat, y = .std.resid)) +
+  geom_point(alpha = 0.6, aes(size = .cooksd), show.legend = FALSE) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_smooth(se = FALSE, color = "red", method = "loess", linewidth = 0.8) +
+  labs(title = "Resíduos vs. Leverage", x = "Leverage (Alavancagem)", y = "Resíduos Padronizados") +
+  theme_minimal() + theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
+
+# Renderiza em um grid 2x2 com lib patchwork
+(graf_residuos | graf_qq) / (graf_scale | graf_leverage)
 ```
 
-Com um valor-p de 0,0085, constata-se a presença de heterocedasticidade estrutural pela checagem de homocedasticidade do teste de *Breusch-Pagan*. É notável quando percebe-se que a variância dos resíduos não é constante, mas sim influenciada pelos valores ajustados da variável resposta. Considerando o contexto biológico, é esperado que espécimes maiores apresentem uma variabilidade natural superior à de espécimes menores.
-
-Outrossim, o resultado do teste de *Jarque-Bera* com p-valor igual à 0,0285 aponta para desvios na distribuição dos resíduos em relação a uma curva normal perfeita. Contudo, considerando o tamanho da amostra após a limpeza dos dados, o Teorema do Limite Central atua para atenuar o impacto desse desvio, tornando as estimativas dos coeficientes assintoticamente válidas, considerando os desvios caudais existentes.
-
-```{r testes_diagnostico, echo=FALSE, warning=FALSE, message=FALSE}
+```{r testes-diagnostico, echo=FALSE, warning=FALSE, message=FALSE}
 library(lmtest)
 library(tseries)
 library(tibble)
@@ -554,12 +557,10 @@ library(knitr)
 library(kableExtra)
 library(dplyr)
 
-# Executando os testes formais de diagnóstico
 teste_bp <- bptest(modelo_vencedor)
 teste_jb <- jarque.bera.test(residuals(modelo_vencedor))
 teste_dw <- dwtest(modelo_vencedor)
 
-# Montando o dataframe com os resultados
 tabela_testes <- tibble::tribble(
   ~`Teste Diagnóstico`, ~`Premissa Avaliada`, ~`Estatística`, ~`Valor-p`,
   "Breusch-Pagan", "Homocedasticidade", teste_bp$statistic, teste_bp$p.value,
@@ -567,7 +568,6 @@ tabela_testes <- tibble::tribble(
   "Durbin-Watson", "Independência (Autocorr.)", teste_dw$statistic, teste_dw$p.value
 )
 
-# Formatando a tabela final para o PDF
 tabela_testes |>
   mutate(
     Estatística = round(Estatística, 4),
@@ -581,9 +581,13 @@ tabela_testes |>
   kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
-A Tabela 5 apresenta os resultados dos testes estatísticos formais aplicados aos resíduos do modelo selecionado. A análise indica que, ao nível de 5% de significância, houve rejeição das hipóteses nulas para as três premissas clássicas do modelo de Mínimos Quadrados Ordinários.
+A Figura \@ref(fig:graficos-residuos) ilustra o diagnóstico de resíduos e a tabela \@ref(tab:testes-diagnostico) apresenta os resultados dos testes estatísticos formais aplicados aos resíduos do modelo selecionado. A análise indica que, ao nível de 5% de significância, houve rejeição das hipóteses nulas para as três premissas clássicas do modelo de Mínimos Quadrados Ordinários.
 
-```{r residuos_especie, echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="80%"}
+Com um p-valor de 0,0085, constata-se a presença de heterocedasticidade estrutural pela checagem de homocedasticidade do teste de *Breusch-Pagan*. É notável quando percebe-se que a variância dos resíduos não é constante, mas sim influenciada pelos valores ajustados da variável resposta. Considerando o contexto biológico, é esperado que espécimes maiores apresentem uma variabilidade natural superior à de espécimes menores.
+
+Outrossim, o resultado do teste de *Jarque-Bera* com p-valor igual à 0,0285 aponta para desvios na distribuição dos resíduos em relação a uma curva normal perfeita. Contudo, considerando o tamanho da amostra após a limpeza dos dados, o Teorema do Limite Central atua para atenuar o impacto desse desvio, tornando as estimativas dos coeficientes assintoticamente válidas, considerando os desvios caudais existentes.
+
+```{r residuos-especie, fig.cap="Distribuição de resíduos por espécie", echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="80%"}
 library(ggplot2)
 library(broom)
 
@@ -610,13 +614,14 @@ ggplot(dados_completos_diagnostico, aes(x = .fitted, y = .resid, color = species
   )
 ```
 
-Como já previsto pelo contexto da base de dados analisada, nota-se não apenas a assimetria de diferentes espécimes representadas no gráfico, como a tendência da espécie maior *Gentoo* ser menos dispersa que as demais espécies *Adelie* e *Chinstrap*
+Como já previsto pelo contexto da base de dados analisada, na Figura \@ref(fig:residuos-especie) nota-se não apenas a assimetria de diferentes espécimes representadas no gráfico, como a tendência da espécie maior *Gentoo* ser menos dispersa que as demais espécies *Adelie* e *Chinstrap*
+
 
 ## 7. Previsão e Incerteza
 
 Com o modelo vencedor, foram construídos três cenários representativos, correspondentes a um pinguim típico de cada espécie da base de dados. A Tabela 9 descreve as características morfológicas adotadas em cada cenário, e a Tabela 10 apresenta as estimativas do comprimento da nadadeira juntamente com seus respectivos intervalos de confiança (IC) e de predição (IP).
 
-```{r previsao_cenarios, echo=FALSE, warning=FALSE, message=FALSE}
+```{r previsao-cenarios, echo=FALSE, warning=FALSE, message=FALSE}
 library(dplyr)
 
 novos_pinguins <- data.frame(
@@ -644,7 +649,7 @@ tabela_previsao <- bind_rows(
 )
 ```
 
-```{r previsao_cenarios_desc, echo=FALSE}
+```{r previsao-cenarios-desc, echo=FALSE}
 knitr::kable(
   novos_pinguins,
   col.names = c("Cenário", "Espécie", "Comp. Bico (mm)", "Prof. Bico (mm)", "Massa (g)"),
@@ -654,7 +659,7 @@ knitr::kable(
   kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
-```{r previsao_resultados, echo=FALSE}
+```{r previsao-resultados, echo=FALSE}
 tabela_previsao |>
   select(cenario, intervalo, estimativa, inferior, superior) |>
   knitr::kable(
