@@ -3,6 +3,7 @@ output:
   bookdown::pdf_document2: 
     latex_engine: xelatex
     number_sections: false # Removendo numerações automáticas de seções
+    toc: false # Removendo sumário automático
   html_document: default
 ---
 
@@ -33,6 +34,10 @@ Este trabalho aplica a metodologia de regressão linear múltipla (MRLM) ao conj
 regressao linear multipla, multicolinearidade, selecao de modelos, palmer penguins, analise exploratoria, caracteristicas morfometicas
 
 ------------------------------------------------------------------------
+
+\newpage
+\tableofcontents
+\newpage
 
 ## 1. Introdução
 
@@ -173,7 +178,7 @@ graficos <- lapply(1:3, function(i) {
 
 grafico_final <- (graficos[[1]] | graficos[[2]] | graficos[[3]]) +
   plot_annotation(
-    title = 'Figura 1: Contagem de Indivíduos pelas Variáveis Qualitativas',
+    title = 'Contagem de Indivíduos pelas Variáveis Qualitativas',
     
     caption = 'Fonte: Elaborado pelo autor (2026).',
     
@@ -211,7 +216,7 @@ ggplot(dados_longos, aes(x = species, y = valor, color = species)) +
   scale_fill_manual(values = paleta_especies) +
   
   labs(
-    title = "Figura 2: Distribuição das Variáveis Numéricas por Espécie",
+    title = "Distribuição das Variáveis Numéricas por Espécie",
     subtitle = "Boxplots sobrepostos com dispersão de indivíduos",
     x = NULL, 
     y = "Valor", 
@@ -267,7 +272,7 @@ ggplot(dados, aes(x = factor(year), y = flipper_length_mm, color = factor(year))
   scale_color_manual(values = c("2007" = "#7f8c8d", "2008" = "#95a5a6", "2009" = "#bdc3c7")) +
   
   labs(
-    title = "Figura 3: Estabilidade Temporal do Comprimento da Nadadeira",
+    title = "Estabilidade Temporal do Comprimento da Nadadeira",
     subtitle = "A distribuição da variável resposta permanece constante ao longo dos anos",
     x = "Ano da Coleta",
     y = "Comprimento da Nadadeira (mm)"
@@ -299,7 +304,7 @@ ggcorrplot(matriz_corr,
            lab_size = 4,                    
            colors = c("#4575b4", "white", "#d72522"), 
            outline.color = "white",
-           title = "Figura 4: Matriz de Correlação",
+           title = "Matriz de Correlação",
            ggtheme = theme_minimal()) +     
   theme(
     plot.title = element_text(size = 11, face = "bold", hjust = 0.5)
@@ -506,9 +511,11 @@ A variável indicadora referente à espécie *Gentoo* apresenta VIF = 14,65, ult
 
 Complementarmente, a comparação entre o modelo vencedor e o Modelo A (Qualitativo: espécie, ilha e sexo) não indicou diferença estatisticamente significativa de desempenho preditivo ($p = 0{,}14$), e a comparação entre o Modelo A e o Modelo B (Quantitativo) também não foi significativa ($p = 0{,}79$). Em conjunto, esses três testes sugerem que ilha e sexo carregam pouca informação preditiva adicional sobre o comprimento da nadadeira depois de considerar espécie e as medidas contínuas, reforçando a decisão de excluí-las do modelo final por parcimônia.
 
+\newpage
+
 ## 6. Análise de Residuos
 
-```{r graficos-residuos, fig.cap="Gráficos de diagnóstico de resíduos", echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="100%", fig.width=10, fig.height=8}
+```{r graficos-residuos, fig.cap="Gráficos de diagnóstico de resíduos", fig.pos = "H", echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="100%", fig.width=10, fig.height=8}
 library(ggplot2)
 library(broom)
 library(patchwork)
@@ -615,7 +622,6 @@ ggplot(dados_completos_diagnostico, aes(x = .fitted, y = .resid, color = species
 ```
 
 Como já previsto pelo contexto da base de dados analisada, na Figura \@ref(fig:residuos-especie) nota-se não apenas a assimetria de diferentes espécimes representadas no gráfico, como a tendência da espécie maior *Gentoo* ser menos dispersa que as demais espécies *Adelie* e *Chinstrap*
-
 
 ## 7. Previsão e Incerteza
 
