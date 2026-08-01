@@ -19,7 +19,7 @@ output:
 
 # Modelagem da Relação entre Características Morfológicas de Pinguins
 
-### João Vítor Neves, Darlan Almeida, Emerson Sulpino
+**João Vítor Neves, Darlan Almeida, Emerson Sulpino**
 
 #### Departamento de Ciência da Computação - UFCG
 
@@ -31,7 +31,7 @@ Este trabalho aplica a metodologia de regressão linear múltipla (MRLM) ao conj
 
 ##### Palavras-Chave:
 
-regressao linear multipla, multicolinearidade, selecao de modelos, palmer penguins, analise exploratoria, caracteristicas morfometicas
+regressão linear múltipla, multicolinearidade, seleção de modelos, palmer penguins, análise exploratória, características morfométricas
 
 ------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ Este trabalho utiliza o conjunto de dados *Palmer Penguins*, coletado pelo progr
 - Verificar as suposições do MRLM por meio de diagnóstico de resíduos;
 - Construir intervalos de confiança e de predição para cenários específicos, com interpretação prática.
 
-### Varíável resposta:
+### Variável resposta:
 
 Usaremos `flipper_length_mm` — o comprimento da nadadeira, em milímetros — como resposta. Queremos investigar e prever essa medida partir das demais informações disponíveis sobre o pinguim: espécie, ilha, medidas do bico, massa corporal, sexo e ano de coleta.
 
@@ -96,7 +96,7 @@ $$\sigma^2_{\text{corrigida}} = \left( \frac{1}{k} + \frac{n_{\text{teste}}}{n_{
 
 ## 3. Descrição da base
 
-A base de dados Palmer Penguins possui n = 344 espécimes registrados
+A base de dados Palmer Penguins possui n = 344 espécimes registrados.
 
 ```{r dicionario-variaveis, echo=FALSE}
 dict <- tibble::tribble(
@@ -246,7 +246,7 @@ Os diagramas de caixa da Figura \@ref(fig: boxplots) confirmam a consistência d
 
 #### 4.2.1 Variável Sexo
 
-Percebe-se que, na Figura \@ref(fig:analise-de-qualidade-de-var-qualitativas), possuímos uma parcela de espécimes que não possuem seu sexo identificado. Com isso, avaliaremos o nível de importância dessa variável a fim de tomar uma decisão quanto à remoção dos espécimes com informações faltantes ou à inclusão desses espécimes ao modelo.
+A análise inicial da variável Sexo revelou a presença de 11 registros ausentes (NaN), perceptível na Figura \ref@(fig:analise-de-qualidade-de-var-qualitativas), o que corresponde a aproximadamente 3,2% da base total. Como proporções de dados faltantes inferiores a 5% são consideradas irrisórias na literatura de análise de dados, acarretando perda negligenciável de poder estatístico, optou-se pela exclusão direta desses indivíduos do conjunto de dados.
 
 Considerando as seguintes hipóteses:
 
@@ -255,11 +255,7 @@ H_0&: \mu_{\text{male}} = \mu_{\text{female}} \\
 H_1&: \mu_{\text{male}} \neq \mu_{\text{female}}
 \end{aligned}$$
 
-Ao realizarmos um teste t de Student para a variável descrita, rejeitamos a hipótese nula de igualdade entre as médias, por termos obtido t = 4,801 e p \< 0,001. Há evidências suficientes que indicam uma associação entre o sexo e o tamanho da nadadeira.
-
-Ao realizarmos a aplicação do Coeficiente de Cohen, demonstramos que a variável sexo possui alta relevância preditiva e explicativa em relação ao comprimento da nadadeira, o que inviabiliza a exclusão da coluna inteira do conjunto de dados.
-
-A variável apresentou 11 registros ausentes (NaN), o que corresponde a aproximadamente 3,2% da base total. Na literatura de análise de dados, proporções de dados faltantes inferiores a 5% são frequentemente tratadas através da exclusão das observações, já que a perda de poder estatístico é negligenciável.
+A aplicação do teste $t$ de Student rejeitou a hipótese nula de igualdade entre as médias ($t = 4{,}801$; $p < 0{,}001$), fornecendo fortes evidências de associação entre o sexo e o tamanho da nadadeira. Complementarmente, o cálculo do Coeficiente de Cohen demonstrou que a variável possui alta relevância explicativa e tamanho de efeito considerável. Dessa forma, conclui-se que a exclusão deve se restringir estritamente às linhas com informações ausentes, enquanto a variável Sexo justifica plenamente sua inclusão na formulação do modelo completo inicial.
 
 #### 4.2.2 Variável Ano
 
@@ -287,7 +283,7 @@ ggplot(dados, aes(x = factor(year), y = flipper_length_mm, color = factor(year))
   )
 ```
 
-A variável *Ano*, da Figura \@ref(fig:desconsiderando-coluna-year), não contribui com a explicabilidade da variável resposta visto que, embora o gráfico revele uma sutil variação negativa na mediana do ano de 2007 e uma assimetria na distribuição dos anos subsequentes (com maior concentração de pontos entre o terceiro e quarto quartis), essas nuances visuais não justificam a utilização dessa variável no modelo. A concentração assimétrica na porção superior das caixas reflete, na verdade, uma distribuição bimodal causada pela sobreposição das diferentes espécies na amostra anual, especificamente a presença da espécie Gentoo, cujos espécimes possuem dimensões naturalmente maiores. Dado que essa variação milimétrica interanual não oferece ganho preditivo ou explicativo relevante em comparação com as variáveis biológicas principais (*Sexo* e *Espécie*), a desconsideração da variável temporal *Ano* não contribuirá para perda significativa de informação.
+A variável Ano, ilustrada na Figura \@ref(fig:desconsiderando-coluna-year), não contribui com a explicabilidade da variável resposta. Embora o gráfico revele uma sutil variação negativa na mediana de 2007 e uma leve assimetria na distribuição dos anos subsequentes, essas nuances visuais não justificam sua inclusão no modelo.
 
 ------------------------------------------------------------------------
 
@@ -337,9 +333,9 @@ GGally::ggpairs(
   )
 ```
 
-Pela separação de espécies, fica clara a forte e positiva correlação entre a massa corporal do pinguim e o tamanho de sua nadadeira, isso para todas as três espécies avaliadas. Ademais, vê-se uma extensão da similaridade antes comprovada nos boxplots que as espécies *Adelia* e *Chinstrap* compartilham de características intrínsecas para tamanho da nadadeira e profundidade do bico
+Pela separação de espécies, fica clara a forte e positiva correlação entre a massa corporal do pinguim e o tamanho de sua nadadeira, isso para todas as três espécies avaliadas. Ademais, vê-se uma extensão da similaridade antes comprovada nos boxplots que as espécies *Adelie* e *Chinstrap* compartilham de características intrínsecas para tamanho da nadadeira e profundidade do bico
 
-```{r correlação-conjunta, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r correlacao-conjunta, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 p_agregado <- ggplot(dados, aes(flipper_length_mm, body_mass_g)) +
   geom_point(color = "#397E9E", alpha = 0.65) +
   geom_smooth(method = "lm", se = TRUE, color = "#00395C", fill = "#B5E5FF") +
@@ -592,7 +588,7 @@ A Figura \@ref(fig:graficos-residuos) ilustra o diagnóstico de resíduos e a ta
 
 Com um p-valor de 0,0085, constata-se a presença de heterocedasticidade estrutural pela checagem de homocedasticidade do teste de *Breusch-Pagan*. É notável quando percebe-se que a variância dos resíduos não é constante, mas sim influenciada pelos valores ajustados da variável resposta. Considerando o contexto biológico, é esperado que espécimes maiores apresentem uma variabilidade natural superior à de espécimes menores.
 
-Outrossim, o resultado do teste de *Jarque-Bera* com p-valor igual à 0,0285 aponta para desvios na distribuição dos resíduos em relação a uma curva normal perfeita. Contudo, considerando o tamanho da amostra após a limpeza dos dados, o Teorema do Limite Central atua para atenuar o impacto desse desvio, tornando as estimativas dos coeficientes assintoticamente válidas, considerando os desvios caudais existentes.
+Outrossim, o resultado do teste de *Jarque-Bera* com p-valor igual a 0,0285 aponta para desvios na distribuição dos resíduos em relação a uma curva normal perfeita. Contudo, considerando o tamanho da amostra após a limpeza dos dados, o Teorema do Limite Central atua para atenuar o impacto desse desvio, tornando as estimativas dos coeficientes assintoticamente válidas, considerando os desvios caudais existentes.
 
 ```{r residuos-especie, fig.cap="Distribuição de resíduos por espécie", echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="80%"}
 library(ggplot2)
@@ -621,11 +617,11 @@ ggplot(dados_completos_diagnostico, aes(x = .fitted, y = .resid, color = species
   )
 ```
 
-Como já previsto pelo contexto da base de dados analisada, na Figura \@ref(fig:residuos-especie) nota-se não apenas a assimetria de diferentes espécimes representadas no gráfico, como a tendência da espécie maior *Gentoo* ser menos dispersa que as demais espécies *Adelie* e *Chinstrap*
+Como já previsto pelo contexto da base de dados analisada, na Figura \@ref(fig:residuos-especie) nota-se não apenas a assimetria de diferentes espécimes representados no gráfico, como a tendência da espécie maior *Gentoo* ser menos dispersa que as demais espécies *Adelie* e *Chinstrap*.
 
 ## 7. Previsão e Incerteza
 
-Com o modelo vencedor, foram construídos três cenários representativos, correspondentes a um pinguim típico de cada espécie da base de dados. A Tabela 9 descreve as características morfológicas adotadas em cada cenário, e a Tabela 10 apresenta as estimativas do comprimento da nadadeira juntamente com seus respectivos intervalos de confiança (IC) e de predição (IP).
+Com o modelo vencedor, foram construídos três cenários representativos, correspondentes a um pinguim típico de cada espécie da base de dados. A Tabela \ref@(tab:previsao-cenarios-desc) descreve as características morfológicas adotadas em cada cenário, e a Tabela \ref@(tab:previsao-resultados) apresenta as estimativas do comprimento da nadadeira juntamente com seus respectivos intervalos de confiança (IC) e de predição (IP).
 
 ```{r previsao-cenarios, echo=FALSE, warning=FALSE, message=FALSE}
 library(dplyr)
