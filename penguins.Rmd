@@ -39,11 +39,11 @@ Este trabalho utiliza o conjunto de dados *Palmer Penguins*, coletado pelo progr
 
 ### Objetivos da análise
 
-- caracterizar exploratoriamente as variáveis morfológicas e categóricas disponíveis;
-- ajustar um modelo inicial com todas as variáveis explicativas e avaliar multicolinearidade;
-- selecionar, entre modelos candidatos, aquele com melhor equilíbrio entre desempenho preditivo, parcimônia e colinearidade controlada dentro de limites aceitáveis;
-- verificar as suposições do MRLM por meio de diagnóstico de resíduos;
-- construir intervalos de confiança e de predição para cenários específicos, com interpretação prática.
+- Caracterizar exploratoriamente as variáveis morfológicas e categóricas disponíveis;
+- Ajustar um modelo inicial com todas as variáveis explicativas e avaliar multicolinearidade;
+- Selecionar, entre modelos candidatos, aquele com melhor equilíbrio entre desempenho preditivo, parcimônia e colinearidade controlada dentro de limites aceitáveis;
+- Verificar as suposições do MRLM por meio de diagnóstico de resíduos;
+- Construir intervalos de confiança e de predição para cenários específicos, com interpretação prática.
 
 ### Varíável resposta:
 
@@ -61,27 +61,27 @@ A análise estrutura-se em quatro etapas: (i) exploração dos dados, ausências
 
 Seja $y_i$ o comprimento da nadadeira, em milímetros, do $i$-ésimo pinguim. Após a retirada da variável `year`, avaliada exploratoriamente como pouco informativa para a resposta, e a remoção dos registros sem identificação de sexo, o modelo completo inicial foi definido com as variáveis morfológicas contínuas e as variáveis categóricas disponíveis:
 
-$$
-\begin{aligned}
+$$\begin{aligned}
 y_i =\;& \beta_0 + \beta_1\,\text{tamBico}_i + \beta_2\,\text{profundBico}_i
       + \beta_3\,\text{massaCorp}_i + \beta_4\,\text{chinstrap}_i \\
 & + \beta_5\,\text{gentoo}_i + \beta_6\,\text{dream}_i
   + \beta_7\,\text{torgersen}_i + \beta_8\,\text{male}_i + \varepsilon_i.
-\end{aligned}
-$$
+\end{aligned}$$
 
 Nesse modelo, `compBico`, `profundBico` e `massaCorp` representam, respectivamente, o comprimento do bico, a profundidade do bico e a massa corporal. As variáveis `chinstrap` e `gentoo` são indicadoras da espécie, tendo *Adelie* como categoria de referência; `dream` e `torgersen` são indicadoras da ilha, tendo *Biscoe* como referência; e `male` representa o sexo masculino, tendo `female` como referência. O termo $\varepsilon_i$ representa o erro aleatório e segue as suposições usuais do MRLM: média nula, variância constante, independência e normalidade aproximada.
 
 A multicolinearidade entre as variáveis explicativas foi avaliada pelo fator de inflação de variância, $VIF_j = 1/(1 - R^2_j)$, em que $R^2_j$ é o coeficiente de determinação da regressão de $X_j$ sobre as demais explicativas; valores de $VIF_j > 10$ foram tratados como indicativo de multicolinearidade severa. A seleção do modelo final foi conduzida pela comparação de subconjuntos de preditores por validação cruzada $K$-Fold ($k = 5$), utilizando o RMSE médio como métrica principal de desempenho preditivo. O AIC e o BIC foram considerados como medidas auxiliares de ajuste e parcimônia, sem substituir a decisão baseada na validação cruzada e nos testes comparativos entre modelos.
 
 ### 2.2 Diagnóstico de Suposições
+
 A validação do modelo vencedor ancorou-se na verificação gráfica e formal dos pressupostos clássicos dos resíduos:
 
-* **Linearidade e Homocedasticidade:** Avaliadas pelo diagrama de resíduos versus valores ajustados e testadas pelo Teste de Breusch-Pagan ($H_0$: variância constante).
-* **Normalidade dos Erros:** Inspecionada pelo gráfico Q-Q Plot e submetida ao teste formal de Jarque-Bera ($H_0$: distribuição normal dos erros).
-* **Independência dos Erros:** Verificada pelo Teste de Durbin-Watson ($H_0$: ausência de autocorrelação nos resíduos).
+- **Linearidade e Homocedasticidade:** Avaliadas pelo diagrama de resíduos versus valores ajustados e testadas pelo Teste de Breusch-Pagan ($H_0$: variância constante).
+- **Normalidade dos Erros:** Inspecionada pelo gráfico Q-Q Plot e submetida ao teste formal de Jarque-Bera ($H_0$: distribuição normal dos erros).
+- **Independência dos Erros:** Verificada pelo Teste de Durbin-Watson ($H_0$: ausência de autocorrelação nos resíduos).
 
 ### 2.3 Critérios de Seleção e Validação Cruzada
+
 Para prevenir o superajuste (*overfitting*) e priorizar a parcimônia, o Critério de Informação de Akaike (AIC) e o Critério Bayesiano de Schwarz (BIC) foram reportados como medidas complementares de ajuste do modelo final, embora a comparação formal entre os subconjuntos candidatos tenha sido conduzida por validação cruzada $K$-fold (RMSE) e teste $t$ pareado com correção de Nadeau-Bengio, apresentados a seguir.
 
 A capacidade de generalização foi mensurada por Validação Cruzada $K$-Fold ($k = 5$) com base no Erro Quadrático Médio de Predição (RMSE). Para comparar os modelos concorrentes neutralizando a dependência entre as dobras de treino e teste, aplicou-se o teste $t$ pareado com a correção de variância de Nadeau-Bengio:
@@ -89,7 +89,9 @@ A capacidade de generalização foi mensurada por Validação Cruzada $K$-Fold (
 $$\sigma^2_{\text{corrigida}} = \left( \frac{1}{k} + \frac{n_{\text{teste}}}{n_{\text{treino}}} \right) s^2_{\text{diferença}}$$
 
 ## 3. Descrição da base
+
 A base de dados Palmer Penguins possui n = 344 espécimes registrados
+
 ```{r dicionario_variaveis, echo=FALSE}
 dict <- tibble::tribble(
   ~Variável, ~Tipo, ~Papel, ~Definição, ~Unidade,
@@ -347,14 +349,12 @@ p_agregado
 
 A partir do modelo inicial apresentado na Seção 2.1, com todas as variáveis explicativas disponíveis (exceto os espécimes sem sexo identificado, tratados na Seção 4.2.1), construímos o Modelo Completo como ponto de partida para a seleção de variáveis:
 
-$$
-\begin{aligned}
+$$\begin{aligned}
 y_i =\;& \beta_0 + \beta_1\,\text{tamBico}_i + \beta_2\,\text{profundBico}_i
       + \beta_3\,\text{massaCorp}_i + \beta_4\,\text{chinstrap}_i \\
 & + \beta_5\,\text{gentoo}_i + \beta_6\,\text{dream}_i
   + \beta_7\,\text{torgersen}_i + \beta_8\,\text{male}_i + \varepsilon_i.
-\end{aligned}
-$$
+\end{aligned}$$
 
 em que *Chinstrap* e *Gentoo* são indicadoras da espécie (*Adelie* como referência), *Dream* e *Torgersen* são indicadoras da ilha (*Biscoe* como referência) e *male* é indicadora do sexo (*female* como referência). Antes de comparar subconjuntos de preditores por validação cruzada (Seção 5.1), avaliamos primeiro se a variável espécie — apontada na análise exploratória (Seções 4.1 e 4.3) como fortemente associada às demais medidas morfológicas — de fato acrescenta poder explicativo, comparando por ANOVA o Modelo Completo contra sua versão restrita sem espécie.
 
@@ -434,7 +434,7 @@ knitr::kable(
 )
 ```
 
-O modelo vencedor apresentou \(R^2\) ajustado de 0,861, indicando que aproximadamente 86,1\% da variabilidade observada no comprimento da nadadeira é explicada pelas variáveis incluídas na regressão. Os valores de AIC (2054.71) e BIC (2081.37) são apresentados como medidas complementares de ajuste e parcimônia do modelo selecionado. Como esses critérios foram calculados apenas para o modelo final, eles não foram utilizados para comparar os modelos candidatos; a seleção foi baseada no menor RMSE obtido por validação cruzada.
+O modelo vencedor apresentou $R^2$ ajustado de 0,861, indicando que aproximadamente 86,1% da variabilidade observada no comprimento da nadadeira é explicada pelas variáveis incluídas na regressão. Os valores de AIC (2054.71) e BIC (2081.37) são apresentados como medidas complementares de ajuste e parcimônia do modelo selecionado. Como esses critérios foram calculados apenas para o modelo final, eles não foram utilizados para comparar os modelos candidatos; a seleção foi baseada no menor RMSE obtido por validação cruzada.
 
 ##### 5.1 Seleção do Modelo via Validação Cruzada Exaustiva
 
@@ -542,6 +542,10 @@ graf_qq <- ggplot(dados_diagnostico, aes(sample = .resid)) +
 graf_residuos | graf_qq
 ```
 
+Com um valor-p de 0,0085, constata-se a presença de heterocedasticidade estrutural pela checagem de homocedasticidade do teste de *Breusch-Pagan*. É notável quando percebe-se que a variância dos resíduos não é constante, mas sim influenciada pelos valores ajustados da variável resposta. Considerando o contexto biológico, é esperado que espécimes maiores apresentem uma variabilidade natural superior à de espécimes menores.
+
+Outrossim, o resultado do teste de *Jarque-Bera* com p-valor igual à 0,0285 aponta para desvios na distribuição dos resíduos em relação a uma curva normal perfeita. Contudo, considerando o tamanho da amostra após a limpeza dos dados, o Teorema do Limite Central atua para atenuar o impacto desse desvio, tornando as estimativas dos coeficientes assintoticamente válidas, considerando os desvios caudais existentes.
+
 ```{r testes_diagnostico, echo=FALSE, warning=FALSE, message=FALSE}
 library(lmtest)
 library(tseries)
@@ -577,6 +581,8 @@ tabela_testes |>
   kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
+A Tabela 5 apresenta os resultados dos testes estatísticos formais aplicados aos resíduos do modelo selecionado. A análise indica que, ao nível de 5% de significância, houve rejeição das hipóteses nulas para as três premissas clássicas do modelo de Mínimos Quadrados Ordinários.
+
 ```{r residuos_especie, echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="80%"}
 library(ggplot2)
 library(broom)
@@ -603,6 +609,8 @@ ggplot(dados_completos_diagnostico, aes(x = .fitted, y = .resid, color = species
     legend.position = "right"
   )
 ```
+
+Como já previsto pelo contexto da base de dados analisada, nota-se não apenas a assimetria de diferentes espécimes representadas no gráfico, como a tendência da espécie maior *Gentoo* ser menos dispersa que as demais espécies *Adelie* e *Chinstrap*
 
 ## 7. Previsão e Incerteza
 
@@ -661,3 +669,11 @@ tabela_previsao |>
 O intervalo de confiança (IC) captura a incerteza sobre o comprimento médio esperado de *todos* os pinguins com aquele conjunto de preditores; o intervalo de previsão (IP) captura a incerteza para *um único* pinguim novo, incorporando também a variação residual do modelo — por isso é sempre mais amplo, e é o apropriado para estimar um indivíduo específico. Essa diferença aparece claramente nos três cenários: o IP é de 4 a 5 vezes mais largo que o IC correspondente (por exemplo, no Pinguim A, 11,71mm de amplitude contra apenas 1,71mm), refletindo que o IC responde apenas pela incerteza da média, enquanto o IP soma a ela a variabilidade individual não explicada pelo modelo.
 
 O IC do Pinguim A (*Adelie*) é o mais estreito dos três (189,16 a 190,87mm), consequência do grande número de indivíduos dessa espécie na amostra (n = 146 após o tratamento da Seção 4.2.1). Além disso, os três cenários não se sobrepõem em nenhum dos dois tipos de intervalo, reforçando numericamente o que já havíamos observado nos boxplots da Seção 4.1 e no gráfico de resíduos por espécie da Seção 6: a espécie mantém forte poder discriminativo sobre o comprimento da nadadeira mesmo depois de controladas as medidas do bico e a massa corporal.
+
+## 8. Conclusões
+
+As variáveis morfológicas dos pinguins do arquipélago de Palmer mostram-se fortemente associadas entre si e nitidamente agrupadas por espécie, refletindo distinções anatômicas claras de massa e estrutura de bico. A avaliação inicial com todas as variáveis explicativas (incluindo dados geográficos e biológicos complementares) revelou redundâncias, uma vez que características como a ilha e o sexo não agregavam ganho preditivo estatisticamente significativo para justificar a complexidade do modelo.
+
+O modelo final, selecionado por busca exaustiva via Validação Cruzada (K-Fold) para a minimização do erro (RMSE), utiliza a espécie, a massa corporal e as dimensões do bico (comprimento e profundidade) como preditores. Esse modelo parcimonioso preservou um excelente poder explicativo (R² ajustado = 0.861). Ao contrário de cenários perfeitamente teóricos, os pressupostos clássicos de MQO foram testados e revelaram leves violações de homocedasticidade, normalidade e independência dos resíduos. Contudo, essa heterocedasticidade reflete a variabilidade natural da biologia observada (onde espécimes maiores tendem a apresentar maior variância estrutural), não acarretando viés nas estimativas.
+
+O modelo permite estimar o comprimento da nadadeira a partir do porte físico da ave e de sua espécie. Embora a estrutura dos resíduos exija certa cautela analítica ao estabelecer intervalos de predição clássicos para novas observações individuais, a robustez da validação metodológica comprova que se trata de uma ferramenta preditiva altamente confiável para a inferência morfológica dentro do intervalo de medidas catalogadas nas ilhas do arquipélago.
