@@ -65,6 +65,7 @@ Pergunta formulada:
 A base de dados Palmer Penguins possui n = 344 espécimes registrados, coletados no arquipélago Palmer, na Antártica Ocidental, entre 2007 e 2009. A unidade de análise é o indivíduo, e a base reúne 8 variáveis morfológicas, categóricas e temporais, descritas na Tabela \@ref(tab:dicionario-variaveis).
 
 ```{r dicionario-variaveis, echo=FALSE}
+library(kableExtra)
 dict <- tibble::tribble(
   ~Variável, ~Tipo, ~Papel, ~Definição, ~Unidade,
   "species", "Categórica", "Preditor", "Espécie do pinguim (Adelie, Chinstrap, Gentoo)", "-",
@@ -81,10 +82,11 @@ dict <- tibble::tribble(
 knitr::kable(
   dict, 
   caption = "Dicionário de variáveis",
-  align = c("l", "c", "c", "l"), 
+  align = c("l", "c", "c", "l", "l"),
   booktabs = TRUE,               
   linesep = "",                  
-)
+) |>
+  kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
 A qualidade da base foi avaliada antes de qualquer modelagem: 11 registros (3,2%) não possuem sexo identificado, e 2 registros adicionais não possuem nenhuma das medidas morfológicas nem sexo — permanecendo disponíveis apenas espécie, ilha e ano. O tratamento dado a esses casos, assim como a decisão sobre a variável *year*, é discutido em detalhe na Seção 4.2, dentro da análise exploratória.
@@ -287,7 +289,7 @@ Diferentemente do que uma inspeção apenas visual da Figura \@ref(fig:desconsid
 
 ### 4.3 Avaliação de correlação entre variáveis
 
-```{r correlacoes, fig.cap="Mapa de calor entre variáveis", echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r correlacoes, fig.cap="Mapa de calor entre variáveis", echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
 library(ggcorrplot)
 
 num_cols <- c('bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g')
@@ -302,7 +304,7 @@ ggcorrplot(matriz_corr,
            ggtheme = theme_minimal()) +     
     plot_annotation(
       caption = "Fonte: Elaborado pelos autores (2026)."
-    )
+    )+
   theme(
     plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
     plot.caption = element_text(size = 9, hjust = 0, color = "grey30"), 
@@ -769,8 +771,12 @@ O modelo final permite estimar o comprimento da nadadeira a partir da espécie, 
 
 ## Referências
 
-COHEN, J. Statistical Power Analysis for the Behavioral Sciences. 2. ed. Hillsdale, NJ: Lawrence Erlbaum Associates, 1988. 
+COHEN, J. Statistical Power Analysis for the Behavioral Sciences. 2. ed. Hillsdale, NJ: Lawrence Erlbaum Associates, 1988.
+
 DIETTERICH, T. G. Approximate statistical tests for comparing supervised classification learning algorithms. Neural Computation, v. 10, n. 7, p. 1895–1923, 1998. 
+
 NADEAU, C.; BENGIO, Y. Inference for the generalization error. Machine Learning, v. 52, n. 3, p. 239–281, 2003.
+
 SCHAFER, J. L. Multiple imputation: a primer. Statistical Methods in Medical Research, v. 8, n. 1, p. 3–15, 1999. 
+
 SUITS, D. B. Use of dummy variables in regression equations. Journal of the American Statistical Association, v. 52, n. 280, p. 548–551, 1957.
