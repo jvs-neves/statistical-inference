@@ -47,7 +47,7 @@ Este trabalho utiliza o conjunto de dados *Palmer Penguins*, coletado pelo progr
 
 - Caracterizar exploratoriamente as variáveis morfológicas e categóricas disponíveis;
 - Ajustar um modelo inicial com todas as variáveis explicativas e avaliar multicolinearidade;
-- A validação cruzada K-fold foi empregada como ferramenta de comparação de desempenho preditivo entre subconjuntos de variáveis candidatos, e não como critério único e automático de seleção do modelo final;
+- Aplicar validação cruzada K-fold como ferramenta de comparação de desempenho preditivo entre subconjuntos de variáveis candidatos, e não como critério único e automático de seleção do modelo final;
 - Selecionar, entre modelos candidatos, aquele com melhor equilíbrio entre desempenho preditivo, parcimônia e colinearidade controlada dentro de limites aceitáveis;
 - Verificar as suposições do MRLM por meio de diagnóstico de resíduos;
 - Construir intervalos de confiança e de predição para cenários específicos, com interpretação prática.
@@ -93,31 +93,16 @@ A qualidade da base foi avaliada antes de qualquer modelagem: 11 registros (3,2%
 
 ## 3. Metodologia
 
-A análise foi estruturada em cinco etapas sequenciais, detalhadas nas Seções 4 a 7 e resumidas a seguir.
-
-### 3.1 Exploração dos dados
-
-Exame das distribuições univariadas e bivariadas das variáveis morfológicas e categóricas, tratamento dos dados ausentes (variáveis sex e year) e avaliação da correlação entre os preditores contínuos e a resposta (Seção 4).
-
-### 3.2 Combinação de variáveis avaliadas por validação cruzada K-fold
-
+A análise foi estruturada em cinco etapas principais que contém exame das distribuições univariadas e bivariadas das variáveis morfológicas e categóricas, tratamento dos dados ausentes (variáveis sex e year) e avaliação da correlação entre os preditores contínuos e a resposta.
 A partir do modelo completo (Seção 5), todos os subconjuntos possíveis de grupos de preditores (espécie, ilha, sexo, comprimento do bico, profundidade do bico, massa corporal) foram avaliados por validação cruzada K-fold (k = 5), utilizando o RMSE médio como métrica principal de desempenho preditivo (Seção 5.1).
 
-### 3.3 Análise dos resultados da validação cruzada
-
 Os subconjuntos com melhor desempenho foram comparados entre si por meio do teste t pareado com correção de variância de Nadeau-Bengio, que ajusta a variância estimada para compensar a dependência entre as dobras de treino e teste, controlando a inflação de falsos positivos característica da validação cruzada k-fold (Nadeau & Bengio, 2003) (Seção 5.1).
-
-### 3.4 Seleção do modelo 
-
 O subconjunto de menor RMSE médio foi diagnosticado quanto à multicolinearidade pelo Fator de Inflação da Variância (VIF), definido como $VIF_j = 1/(1 − R^2)$, em que $R^2$ é o coeficiente de determinação da regressão de $X_j$ sobre as demais explicativas; valores de VIF > 10 foram tratados como indicativo de multicolinearidade severa. Constatada colinearidade severa nesse subconjunto (Seção 5.2), a seleção final priorizou, entre os candidatos estatisticamente equivalentes em desempenho, o modelo livre desse problema e com coeficientes mais diretamente interpretáveis — e não apenas o de menor RMSE (Seção 5.3).
-
-### 3.5 Diagnóstico dos pressupostos dos resíduos, intervalos de confiança e de predição
 
 A validação do modelo final ancorou-se na verificação gráfica e formal dos pressupostos clássicos dos resíduos (Seção 6):
 - Linearidade e Homocedasticidade: diagrama de resíduos versus valores ajustados e Teste de Breusch-Pagan (H0: variância constante);
 - Normalidade dos Erros: gráfico Q-Q Plot e teste formal de Jarque-Bera (H0: distribuição normal dos erros);
 - Independência dos Erros: Teste de Durbin-Watson (H0: ausência de autocorrelação nos resíduos). (TALVEZ TROCAR POR OUTRO TESTE)
-
 Por fim, construíram-se intervalos de confiança (IC) para a média e intervalos de predição (IP) para observações individuais em cenários hipotéticos representativos de cada espécie (Seção 7).
 
 ## 4. Análise Exploratória
@@ -148,7 +133,7 @@ knitr::kable(
   )
 ```
 
-```{r analise-de-qualidade-de-var-qualitativas, fig.cap = "Distribuição de variáveis qualitativas", echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r analise-de-qualidade-de-var-qualitativas, fig.cap = "Distribuição de variáveis qualitativas", echo=FALSE, fig.align="center", out.width="80%", fig.width=8, fig.height=6}
 
 cat_cols <- c('species', 'island', 'sex')
 titulos <- c('Espécie', 'Ilha', 'Sexo')
@@ -194,7 +179,7 @@ grafico_final
 
 A espécie *Adelie* é a mais representativa da amostra (152 indivíduos; 44,2%), seguida por *Gentoo* (124; 36,0%) e *Chinstrap* (68; 19,8%). Geograficamente, *Biscoe* concentra quase metade dos registros (168; 48,8%), seguida por *Dream* (124; 36,0%) e *Torgersen* (52; 15,1%). O sexo está quase perfeitamente balanceado entre os indivíduos identificados (165 fêmeas, 168 machos), restando 11 sem identificação.
 
-```{r boxplots, fig.cap="Distribuição de variáveis quantitativas", echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r boxplots, fig.cap="Distribuição de variáveis quantitativas", echo=FALSE, fig.align="center", out.width="85%", fig.width=8, fig.height=6}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
 
 dados_longos <- dados |>
@@ -258,7 +243,7 @@ A aplicação do teste $t$ de Student rejeitou a hipótese nula de igualdade ent
 
 #### 4.2.2 Variável Ano
 
-```{r desconsiderando-coluna-year, fig.cap="Distribuição do tamanho da nadadeiro por Ano", echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r desconsiderando-coluna-year, fig.cap="Distribuição do tamanho da nadadeiro por Ano", echo=FALSE, fig.align="center", out.width="85%", fig.width=8, fig.height=6}
 ggplot(dados, aes(x = factor(year), y = flipper_length_mm, color = factor(year))) +
   
   geom_jitter(width = 0.2, alpha = 0.4, size = 1.5) +
@@ -289,7 +274,7 @@ Diferentemente do que uma inspeção apenas visual da Figura \@ref(fig:desconsid
 
 ### 4.3 Avaliação de correlação entre variáveis
 
-```{r correlacoes, fig.cap="Mapa de calor entre variáveis", echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r correlacoes, fig.cap="Mapa de calor entre variáveis", echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="85%", fig.width=8, fig.height=6}
 library(ggcorrplot)
 
 num_cols <- c('bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g')
@@ -313,7 +298,7 @@ ggcorrplot(matriz_corr,
 
 A Figura \@ref(fig:correlacoes) apresenta a matriz de correlação de Pearson entre as variáveis numéricas contínuas. Observa-se uma forte correlação positiva entre o comprimento da nadadeira (`flipper_length_mm`) e a massa corporal (`body_mass_g`) ($r = 0,87$), evidenciando que a massa é o principal preditor linear contínuo do tamanho do apêndice. O comprimento do bico (`bill_length_mm`) também exibe correlação positiva considerável ($r = 0,65$) com a variável resposta. Em contrapartida, a profundidade do bico (`bill_depth_mm`) apresenta correlação negativa com a nadadeira ($r = -0,58$), um comportamento aparente causado pela presença da espécie *Gentoo*, cujos indivíduos possuem nadadeiras longas e bicos finos.
 
-```{r scatterplots-multiplos, echo=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+```{r scatterplots-multiplos, echo=FALSE, fig.align="center", out.width="100%", fig.width=8, fig.height=6}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
 
 GGally::ggpairs(
@@ -346,6 +331,7 @@ GGally::ggpairs(
 Pela separação de espécies, fica clara a forte e positiva correlação entre a massa corporal do pinguim e o tamanho de sua nadadeira, isso para todas as três espécies avaliadas. Essa constatação é central para a discussão de multicolinearidade na Seção 5.2: variáveis contínuas fortemente associadas à espécie tendem a ser redundantes com ela em um mesmo modelo. Ademais, vê-se uma extensão da similaridade antes comprovada nos diagramas de caixa que as espécies *Adelie* e *Chinstrap* compartilham de características intrínsecas para tamanho da nadadeira e profundidade do bico
 
 ```{r correlacao-conjunta, echo=FALSE, include=FALSE, fig.align="center", out.width="75%", fig.width=8, fig.height=4.5}
+# Gráfico Removido
 p_agregado <- ggplot(dados, aes(flipper_length_mm, body_mass_g)) +
   geom_point(color = "#397E9E", alpha = 0.65) +
   geom_smooth(method = "lm", se = TRUE, color = "#00395C", fill = "#B5E5FF") +
@@ -360,16 +346,7 @@ p_agregado
 
 ## 5. Seleção de Variáveis e Regressão dos modelos
 
-A partir do modelo inicial apresentado na Seção 2.1, com todas as variáveis explicativas disponíveis (exceto os espécimes sem sexo identificado, tratados na Seção 4.2.1), construímos o Modelo Completo como ponto de partida para a seleção de variáveis:
-
-$$\begin{aligned}
-y_i =\;& \beta_0 + \beta_1\,\text{tamBico}_i + \beta_2\,\text{profundBico}_i
-      + \beta_3\,\text{massaCorp}_i + \beta_4\,\text{chinstrap}_i \\
-& + \beta_5\,\text{gentoo}_i + \beta_6\,\text{dream}_i
-  + \beta_7\,\text{torgersen}_i + \beta_8\,\text{male}_i + \varepsilon_i.
-\end{aligned}$$
-
-em que *Chinstrap* e *Gentoo* são indicadoras da espécie (*Adelie* como referência), *Dream* e *Torgersen* são indicadoras da ilha (*Biscoe* como referência) e *male* é indicadora do sexo (*female* como referência). Antes de comparar subconjuntos de preditores por validação cruzada (Seção 5.1), avaliamos primeiro se a variável espécie — apontada na análise exploratória (Seções 4.1 e 4.3) como fortemente associada às demais medidas morfológicas — de fato acrescenta poder explicativo, comparando por ANOVA o Modelo Completo contra sua versão restrita sem espécie.
+Com a base de dados tratada e as relações bivariadas delineadas na etapa exploratória, esta seção detalha o processo de seleção do modelo de regressão linear múltipla. O objetivo central é identificar o subconjunto de preditores que melhor explica o comprimento da nadadeira, priorizando o equilíbrio entre precisão preditiva, parcimônia e confiabilidade interpretativa. Para evitar a escolha de um modelo superajustado ou com coeficientes matematicamente instáveis, a estratégia de seleção foi fundamentada em três pilares analíticos: a minimização do erro de predição em dados não vistos (avaliada via validação cruzada $K$-Fold), a garantia de independência informacional entre os preditores (diagnosticada pelo Fator de Inflação da Variância - VIF) e a comparação formal de desempenho por testes de hipótese. A seguir, descreve-se o percurso metodológico que orientou o descarte de modelos concorrentes e a parametrização do modelo final.
 
 ```{r tratamento-de-dados-pre-modelagem, echo=FALSE}
 dados_modelados <- dados |>
@@ -377,10 +354,11 @@ dados_modelados <- dados |>
   filter(!is.na(sex))
 ```
 
-```{r anova-modelos, echo=FALSE, warning=FALSE, message=FALSE}
+```{r anova-modelos, echo=FALSE, include=FALSE, warning=FALSE, message=FALSE}
 library(broom)
 library(dplyr)
 library(kableExtra)
+# Essa comparação de modelos foi removida da versão final
 
 modelo_sem_especie <- lm(flipper_length_mm ~ bill_length_mm + bill_depth_mm + body_mass_g + island + sex, data = dados_modelados)
 
@@ -402,8 +380,6 @@ anova(modelo_sem_especie, modelo_completo) |>
   kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
-Com $F = 37{,}91$ e $p < 0,001$, rejeita-se a hipótese nula de que os dois modelos possuem a mesma capacidade explicativa: a espécie contribui de forma estatisticamente significativa para a predição do comprimento da nadadeira. Essa constância motivou sua inclusão em todos os subconjuntos candidatos avaliados a seguir.
-
 ### 5.1 Combinação de Variáveis e Validação Cruzada
 
 Realizou-se uma busca exaustiva por combinações de grupos de variáveis (espécie, ilha, sexo, comprimento e profundidade do bico, massa corporal), avaliadas por validação cruzada K-Fold ($k = 5$), utilizando o RMSE médio como métrica principal. Para comparar os candidatos mais competitivos, aplicou-se o teste t pareado com a correção de variância de Nadeau-Bengio (*Nadeau & Bengio, 2003*):
@@ -415,21 +391,21 @@ comparativo <- tibble::tribble(
   ~Modelo, ~`Variáveis Preditores`, ~`RMSE Médio (K-Fold)`, ~`R² Ajustado`,
   "Candidato Multicolinear", "Espécie, Bico (Compr. e Prof.), Massa", "5.29 mm", "0.861",
   "Modelo A (Qualitativo)", "Espécie, Ilha, Sexo", "5.77 mm", "0.835",
-  "Modelo B (Quantitativo)", "Bico (Compr. e Prof.), Massa", "5.86 mm", "0.830",
+  "Modelo B (Quantitativo)", "Bico (Compr. e Prof.), Massa", "5.86 mm", "0.830"
 )
 
 knitr::kable(
   comparativo, 
-  align = c("l", "l", "c"), 
+  align = c("l", "l", "c", "c"), 
   booktabs = TRUE,               
   linesep = "",                  
   caption = "Comparativo de Desempenho Preditivo entre Subconjuntos de Variáveis"
 ) |>
   kable_styling(
-    latex_options = c("HOLD_position"), 
+    latex_options = c("HOLD_position", "scale_down"), 
     font_size = 10                      
   ) |>
-  column_spec(2, width = "8cm") 
+  column_spec(2, width = "5.5cm") 
 ```
 
 ### 5.2 Diagnóstico de Multicolinearidade do Candidato de Menor RMSE
@@ -594,6 +570,8 @@ Todos os VIFs do modelo final estão bem abaixo do limiar de severidade (VIF > 1
 
 ## 6. Análise de Residuos
 
+A Figura \@ref(fig:graficos-residuos) e a Tabela \@ref(tab:testes-diagnostico) avaliam formal e visualmente as suposições de média nula, homocedasticidade e normalidade, além de verificar a possível presença de pontos de alavancagem. 
+
 ```{r graficos-residuos, fig.cap="Gráficos de diagnóstico de resíduos", fig.pos = "H", echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="100%", fig.width=10, fig.height=8}
 library(ggplot2)
 library(broom)
@@ -604,13 +582,13 @@ dados_diagnostico <- augment(modelo_vencedor)
 
 # Gráfico 1: Resíduos vs Ajustados (Homocedasticidade)
 graf_residuos <- ggplot(dados_diagnostico, aes(x = .fitted, y = .resid)) +
-  geom_point(alpha = 0.6) +
+  geom_jitter(aes(color = species), alpha = 0.6, width = 0.8, height = 0) +
   geom_hline(yintercept = 0, color = "gray50", linetype = "dashed", linewidth = 1) +
   geom_smooth(se = FALSE, color = "red", method = "loess", linewidth = 0.8) +
-  labs(title = "Resíduos vs. Valores Ajustados", x = "Valores Preditos (mm)", y = "Resíduos") +
+  labs(title = "Resíduos vs. Valores Ajustados", x = "Valores Preditos (mm)", y = "Resíduos", color = "Espécie") +
   theme_minimal() + theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
 
-# Gráfico 2: Q-Q Plot (Normalidade)
+# Gráfico 2: Q-Q Plot (Normalidade) - Sem mapeamento de cores
 graf_qq <- ggplot(dados_diagnostico, aes(sample = .resid)) +
   stat_qq(alpha = 0.6) +
   stat_qq_line(color = "gray50", linetype = "dashed", linewidth = 1) +
@@ -619,21 +597,22 @@ graf_qq <- ggplot(dados_diagnostico, aes(sample = .resid)) +
 
 # Gráfico 3: Scale-Location (Verificação de Dispersão)
 graf_scale <- ggplot(dados_diagnostico, aes(x = .fitted, y = sqrt(abs(.std.resid)))) +
-  geom_point(alpha = 0.6) +
+  geom_jitter(aes(color = species), alpha = 0.6, width = 0.8, height = 0) +
   geom_smooth(se = FALSE, color = "red", method = "loess", linewidth = 0.8) +
-  labs(title = "Scale-Location", x = "Valores Preditos (mm)", y = "Resíduos Padronizados") +
+  labs(title = "Scale-Location", x = "Valores Preditos (mm)", y = "Resíduos Padronizados", color = "Espécie") +
   theme_minimal() + theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
 
 # Gráfico 4: Resíduos vs Leverage (Pontos de Influência)
 graf_leverage <- ggplot(dados_diagnostico, aes(x = .hat, y = .std.resid)) +
-  geom_point(alpha = 0.6, aes(size = .cooksd), show.legend = FALSE) +
+  geom_point(aes(color = species, size = .cooksd), alpha = 0.6, show.legend = FALSE) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
   geom_smooth(se = FALSE, color = "red", method = "loess", linewidth = 0.8) +
   labs(title = "Resíduos vs. Leverage", x = "Leverage (Alavancagem)", y = "Resíduos Padronizados") +
   theme_minimal() + theme(plot.title = element_text(face = "bold", size = 11, hjust = 0.5))
 
-# Renderiza em um grid 2x2 com lib patchwork
-(graf_residuos | graf_qq) / (graf_scale | graf_leverage)
+# Renderiza em um grid 2x2 aglomerando as legendas no rodapé
+(graf_residuos | graf_qq) / (graf_scale | graf_leverage) +
+  plot_layout(guides = "collect") & theme(legend.position = "bottom")
 ```
 
 ```{r testes-diagnostico, echo=FALSE, warning=FALSE, message=FALSE}
@@ -672,9 +651,10 @@ A Figura \@ref(fig:graficos-residuos) ilustra o diagnóstico de resíduos e a ta
 
 O diagnóstico dos resíduos do modelo final é sensivelmente melhor que o do candidato descartado na Seção 5.2. O teste de Jarque-Bera não rejeita a normalidade dos erros ($p = 0,975$), resultado consideravelmente mais favorável do que o observado para o candidato multicolinear ($p = 0,0285$ no modelo original), o que é coerente com a substituição de preditores contínuos correlacionados por indicadoras categóricas bem separadas entre grupos. O teste de Durbin-Watson (1,78) situa-se próximo de 2, não indicando autocorrelação relevante nos resíduos. Persiste, porém, heterocedasticidade estatisticamente detectável pelo teste de Breusch-Pagan ($p = 0,023$): a variância dos resíduos não é totalmente constante ao longo dos valores ajustados. Como no candidato original, esse padrão é compatível com o contexto biológico — é esperado que espécimes de maior porte apresentem variabilidade natural superior à de espécimes menores — mas, diferentemente do observado antes, o p-valor é menos extremo, sugerindo heterocedasticidade mais moderada.
 
-```{r residuos-especie, fig.cap="Distribuição de resíduos por espécie", echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="80%"}
+```{r residuos-especie, include=FALSE, fig.cap="Distribuição de resíduos por espécie", echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="80%"}
 library(ggplot2)
 library(broom)
+# Gráfico removido da versão final
 
 dados_completos_diagnostico <- augment(modelo_vencedor, data = dados_modelados)
 
@@ -699,7 +679,7 @@ ggplot(dados_completos_diagnostico, aes(x = .fitted, y = .resid, color = species
   )
 ```
 
-Na Figura \@ref(fig:residuos-especie) nota-se não apenas a assimetria de diferentes espécimes representados no gráfico, como a tendência da espécie maior *Gentoo* ser menos dispersa que as demais espécies *Adelie* e *Chinstrap*. A separação dos valores ajustados por espécie confirma que o modelo final discrimina corretamente os três grupos (Adelie e Chinstrap concentrados nos valores preditos mais baixos, Gentoo isolado nos valores mais altos), sem sobreposição relevante entre as nuvens de resíduos das diferentes espécies.
+Na Figura \@ref(fig:graficos-residuos) nota-se não apenas a assimetria de diferentes espécimes representados no gráfico, como a tendência da espécie maior *Gentoo* ser menos dispersa que as demais espécies *Adelie* e *Chinstrap*. A separação dos valores ajustados por espécie confirma que o modelo final discrimina corretamente os três grupos (Adelie e Chinstrap concentrados nos valores preditos mais baixos, Gentoo isolado nos valores mais altos), sem sobreposição relevante entre as nuvens de resíduos das diferentes espécies.
 
 ## 7. Previsão e Incerteza
 
