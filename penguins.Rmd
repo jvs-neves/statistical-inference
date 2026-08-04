@@ -17,7 +17,7 @@ output:
 
 ------------------------------------------------------------------------
 
-# Modelagem da Relação entre Características Morfológicas de Pinguins
+# Modelagem do Comprimento da Nadadeira em Pinguins Antárticos
 
 **João Vítor Neves, Darlan Almeida, Emerson Sulpino**
 
@@ -27,7 +27,7 @@ output:
 
 ##### Resumo
 
-Este trabalho aplica a metodologia de regressão linear múltipla (MRLM) ao conjunto de dados *Palmer Penguins*, proveniente do programa de Pesquisa Ecológica de Longo Prazo (LTER) na Antártica Ocidental, com o objetivo de modelar o comprimento da nadadeira de pinguins das espécies *Adelie*, *Chinstrap* e *Gentoo* a partir de variáveis morfológicas e categóricas. Realizou-se uma análise exploratória das distribuições, correlações e dados ausentes, seguida da combinação de diferentes subconjuntos de preditores avaliados por validação cruzada K-fold. O subconjunto com o menor RMSE médio (espécie, comprimento e profundidade do bico e massa corporal) apresentou colinearidade severa (VIF > 10) associada à espécie Gentoo, o que motivou seu descarte em favor de um modelo alternativo, estatisticamente equivalente em desempenho preditivo (teste t pareado com correção de Nadeau-Bengio, p = 0,14) e livre de multicolinearidade: o modelo composto exclusivamente pelas variáveis qualitativas espécie, ilha e sexo. Esse modelo, adotado como versão final, apresentou R² ajustado de 0,835, resíduos aproximadamente normais e desempenho preditivo estatisticamente indistinguível do modelo mais complexo, evidenciando que o equilíbrio entre desempenho preditivo, parcimônia e ausência de colinearidade é o critério mais adequado para a seleção final, e não a validação cruzada isoladamente.
+Este trabalho aplica a metodologia de regressão linear múltipla (MRLM) ao conjunto de dados *Palmer Penguins*, proveniente do programa de Pesquisa Ecológica de Longo Prazo (LTER) na Antártica Ocidental, com o objetivo de modelar o comprimento da nadadeira de pinguins das espécies *Adelie*, *Chinstrap* e *Gentoo* a partir de variáveis morfológicas e categóricas. Realizou-se uma análise exploratória das distribuições, correlações e dados ausentes, seguida da combinação de diferentes subconjuntos de preditores avaliados por validação cruzada K-fold. O subconjunto com o menor RMSE médio (espécie, comprimento e profundidade do bico e massa corporal) apresentou colinearidade severa (VIF > 10) associada à espécie Gentoo, o que motivou seu descarte em favor de um modelo alternativo, sem diferença de desempenho preditivo estatisticamente detectável (teste t pareado com correção de Nadeau-Bengio, p = 0,14) e livre de multicolinearidade: o modelo composto exclusivamente pelas variáveis qualitativas espécie, ilha e sexo. Esse modelo, adotado como versão final, apresentou R² ajustado de 0,835, resíduos aproximadamente normais e desempenho preditivo sem diferença detectável em relação ao modelo mais complexo, evidenciando que o equilíbrio entre desempenho preditivo, parcimônia e ausência de colinearidade é o critério mais adequado para a seleção final, e não a validação cruzada isoladamente.
 
 ##### Palavras-Chave:
 
@@ -58,7 +58,7 @@ Usaremos `comprimento_nadadeira_mm` — o comprimento da nadadeira, em milímetr
 
 Pergunta formulada:
 
-> Entre pinguins semelhantes nas demais características consideradas, como o comprimento esperado da nadadeira varia com cada preditor, e quão bem o modelo prevê novos pinguins?
+> Entre pinguins semelhantes nas demais características consideradas, como o comprimento esperado da nadadeira varia com cada preditor?
 
 ## 2. Descrição da base
 
@@ -74,30 +74,33 @@ dict <- tibble::tribble(
   "profundidade_bico_mm", "Numérica", "Preditor", "Profundidade do bico", "milímetros",
   "comprimento_nadadeira_mm", "Numérica", "Resposta", "Comprimento da nadadeira", "milímetros",
   "massa_corporal_g", "Numérica", "Preditor", "Massa corporal", "gramas",
-  "sexo", "Categórica", "Preditor", "sexo do pinguim (macho, femea)", "-",
+  "sexo", "Categórica", "Preditor", "Sexo do pinguim (macho, fêmea)", "-",
   "ano", "Inteira", "Descartada", "Ano em que a observação foi registrada", "-"
 )
 
-# Gerando a tabela com formatação nativa para PDF
 knitr::kable(
   dict, 
   caption = "Dicionário de variáveis",
   align = c("l", "c", "c", "l", "l"),
   booktabs = TRUE,               
-  linesep = "",                  
+  linesep = ""                   
 ) |>
-  kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+  kable_styling(
+    latex_options = c("HOLD_position", "scale_down"),
+    full_width = FALSE,
+    font_size = 10 
+  )
 ```
 
-A qualidade da base foi avaliada antes de qualquer modelagem: 11 registros (3,2%) não possuem sexo identificado, e 2 registros adicionais não possuem nenhuma das medidas morfológicas nem sexo — permanecendo disponíveis apenas espécie, ilha e ano. O tratamento dado a esses casos, assim como a decisão sobre a variável *ano*, é discutido em detalhe na Seção 4.2, dentro da análise exploratória.
+A qualidade da base foi avaliada antes de qualquer modelagem: 11 registros (3,2%) não possuem sexo identificado. Desses 11, 2 registros também não possuem nenhuma das medidas morfológicas — permanecendo disponíveis, nesses casos específicos, apenas espécie, ilha e ano. Ou seja, o total de registros com ao menos uma informação relevante ausente é 11 (não 13, já que os 2 casos mais incompletos estão contidos nesse mesmo grupo de 11). O tratamento dado a esses casos, assim como a decisão sobre a variável *ano*, é discutido em detalhe na Seção 4.2, dentro da análise exploratória.
 
 ## 3. Metodologia
 
 A análise foi estruturada em cinco etapas principais que contém exame das distribuições univariadas e bivariadas das variáveis morfológicas e categóricas, tratamento dos dados ausentes (variáveis sexo e ano) e avaliação da correlação entre os preditores contínuos e a resposta.
 A partir do modelo completo (Seção 5), todos os subconjuntos possíveis de grupos de preditores (espécie, ilha, sexo, comprimento do bico, profundidade do bico, massa corporal) foram avaliados por validação cruzada K-fold (k = 5), utilizando o RMSE médio como métrica principal de desempenho preditivo (Seção 5.1).
 
-Os subconjuntos com melhor desempenho foram comparados entre si por meio do teste t pareado com correção de variância de Nadeau-Bengio, que ajusta a variância estimada para compensar a dependência entre as dobras de treino e teste, controlando a inflação de falsos positivos característica da validação cruzada k-fold (Nadeau & Bengio, 2003) (Seção 5.1).
-O subconjunto de menor RMSE médio foi diagnosticado quanto à multicolinearidade pelo Fator de Inflação da Variância (VIF), definido como $VIF_j = 1/(1 − R^2)$, em que $R^2$ é o coeficiente de determinação da regressão de $X_j$ sobre as demais explicativas; valores de VIF > 10 foram tratados como indicativo de multicolinearidade severa. Constatada colinearidade severa nesse subconjunto (Seção 5.2), a seleção final priorizou, entre os candidatos estatisticamente equivalentes em desempenho, o modelo livre desse problema e com coeficientes mais diretamente interpretáveis — e não apenas o de menor RMSE (Seção 5.3).
+Os subconjuntos com melhor desempenho foram comparados entre si por meio do teste t pareado com correção de variância de Nadeau-Bengio, que ajusta a variância estimada para compensar a dependência entre as dobras de treino e teste, controlando a inflação de falsos positivos característica da validação cruzada k-fold (Nadeau & Bengio, 2003) — problema já apontado por Dietterich (1998) ao discutir os riscos de testes estatísticos ingênuos na comparação de algoritmos de aprendizado avaliados por reamostragem (Seção 5.1).
+O subconjunto de menor RMSE médio foi diagnosticado quanto à multicolinearidade pelo Fator de Inflação da Variância (VIF), definido como $VIF_j = 1/(1 − R^2)$, em que $R^2$ é o coeficiente de determinação da regressão de $X_j$ sobre as demais explicativas; valores de VIF > 10 foram tratados como indicativo de multicolinearidade severa. Constatada colinearidade severa nesse subconjunto (Seção 5.2), a seleção final priorizou, entre os candidatos sem diferença de desempenho detectável, o modelo livre desse problema e com coeficientes mais diretamente interpretáveis — e não apenas o de menor RMSE (Seção 5.3).
 
 A validação do modelo final ancorou-se na verificação gráfica e formal dos pressupostos clássicos dos resíduos (Seção 6):
 - Linearidade e Homocedasticidade: diagrama de resíduos versus valores ajustados e Teste de Breusch-Pagan (H0: variância constante);
@@ -153,7 +156,9 @@ knitr::kable(
 )
 ```
 
-```{r analise-de-qualidade-de-var-qualitativas, fig.cap = "Distribuição de variáveis qualitativas", echo=FALSE, fig.align="center", out.width="80%", fig.width=8, fig.height=6}
+Antes de investigar as relações entre as variáveis, examinamos a distribuição individual de cada uma. A Figura \@ref(fig:analise-de-qualidade-de-var-qualitativas) apresenta a contagem de indivíduos segundo espécie, ilha e sexo, permitindo avaliar o grau de balanceamento das categorias na amostra.
+
+```{r analise-de-qualidade-de-var-qualitativas, fig.cap = "Distribuição de variáveis qualitativas", fig.pos = "H",echo=FALSE, fig.align="center", out.width="80%", fig.width=8, fig.height=6}
 
 cat_cols <- c('especie', 'ilha', 'sexo')
 titulos <- c('Espécie', 'Ilha', 'Sexo')
@@ -199,7 +204,9 @@ grafico_final
 
 A espécie *Adelie* é a mais representativa da amostra (152 indivíduos; 44,2%), seguida por *Gentoo* (124; 36,0%) e *Chinstrap* (68; 19,8%). Geograficamente, *Biscoe* concentra quase metade dos registros (168; 48,8%), seguida por *Dream* (124; 36,0%) e *Torgersen* (52; 15,1%). O sexo está quase perfeitamente balanceado entre os indivíduos identificados (165 fêmeas, 168 machos), restando 11 sem identificação.
 
-```{r boxplots, fig.cap="Distribuição de variáveis quantitativas", echo=FALSE, fig.align="center", out.width="85%", fig.width=8, fig.height=6}
+Em seguida, avaliamos a distribuição das variáveis morfométricas contínuas por espécie, de modo a identificar diferenças de escala e possíveis padrões de sobreposição entre grupos, conforme apresentado na Figura \@ref(fig:boxplots).
+
+```{r boxplots, fig.cap="Distribuição de variáveis quantitativas", fig.pos = "H",echo=FALSE, fig.align="center", out.width="85%", fig.width=8, fig.height=6}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
 
 dados_longos <- dados |>
@@ -251,7 +258,7 @@ Os diagramas de caixa, da Figura \@ref(fig:boxplots), confirmam a consistência 
 
 #### 4.2.1 Variável Sexo
 
-A análise inicial da variável sexo revelou a presença de 11 registros ausentes (NaN), perceptível na Figura \@ref(fig:analise-de-qualidade-de-var-qualitativas), o que corresponde a aproximadamente 3,2% da base total. Como proporções de dados faltantes inferiores a 5% são consideradas irrisórias na literatura de análise de dados, acarretando perda negligenciável de poder estatístico, optou-se pela exclusão direta desses indivíduos do conjunto de dados.
+A análise inicial da variável sexo revelou a presença de 11 registros ausentes (NaN), perceptível na Figura \@ref(fig:analise-de-qualidade-de-var-qualitativas), o que corresponde a aproximadamente 3,2% da base total. Como proporções de dados faltantes inferiores a 5% são consideradas irrisórias na literatura de análise de dados, acarretando perda negligenciável de poder estatístico, optou-se pela exclusão direta desses indivíduos do conjunto de dados. Alternativas como a imputação múltipla (Schafer, 1999) poderiam preservar essas observações para a modelagem, mas foram descartadas neste trabalho dada a baixa proporção de dados ausentes frente ao ganho marginal esperado e à preferência por manter a simplicidade e a transparência do tratamento de dados.
 
 Considerando as seguintes hipóteses:
 
@@ -263,7 +270,9 @@ A aplicação do teste $t$ de Student rejeitou a hipótese nula de igualdade ent
 
 #### 4.2.2 Variável Ano
 
-```{r desconsiderando-coluna-year, fig.cap="Distribuição do tamanho da nadadeiro por Ano", echo=FALSE, fig.align="center", out.width="85%", fig.width=8, fig.height=6}
+Antes de decidir sobre a inclusão da variável *ano* na modelagem, verificamos visualmente sua relação com a resposta. A Figura \@ref(fig:desconsiderando-coluna-year) mostra a distribuição do comprimento da nadadeira segundo o ano de coleta.
+
+```{r desconsiderando-coluna-year, fig.cap="Distribuição do tamanho da nadadeiro por Ano", fig.pos = "H",echo=FALSE, fig.align="center", out.width="85%", fig.width=8, fig.height=6}
 ggplot(dados, aes(x = factor(ano), y = comprimento_nadadeira_mm, color = factor(ano))) +
   
   geom_jitter(width = 0.2, alpha = 0.4, size = 1.5) +
@@ -289,12 +298,14 @@ ggplot(dados, aes(x = factor(ano), y = comprimento_nadadeira_mm, color = factor(
   )
 ```
 
-Diferentemente do que uma inspeção apenas visual da Figura \@ref(fig:desconsiderando-coluna-year) poderia sugerir, o ano de coleta não é estatisticamente irrelevante para a resposta: uma ANOVA de um fator (*comprimento_nadadeira_mm* ~ *ano*) rejeita a hipótese de médias iguais entre os três anos ($F = 5,41$; $p = 0,005$), e o efeito permanece altamente significativo mesmo controlando por espécie, ilha e sexo (teste F para a inclusão de *ano* no modelo qualitativo: $F = 25,68$; $p < 0,001$), elevando o $R^2$ ajustado de 0,835 para 0,857. Ainda assim, *ano* foi descartada da modelagem, por duas razões que se complementam. Primeiro, razão substantiva: a distribuição de espécies não é idêntica entre os anos (*Adelie*: 44/50/52; *Chinstrap*: 26/18/24; *Gentoo*: 33/45/41, em 2007/2008/2009), de modo que parte da associação entre *ano* e a resposta é herdada da composição amostral, e não de uma mudança biológica real ano a ano. Segundo, e mais decisivo: razão de generalização. Em um cenário real de aplicação do modelo, os anos presentes na base de treinamento (2007/2009) não estarão mais disponíveis para observações futuras — um pinguim medido em 2026 teria um valor de *ano* fora do domínio observado, exigindo extrapolação categórica sem sustentação nos dados. Uma variável de calendário específica ao período de coleta não generaliza para novas coletas, ao contrário de espécie, ilha, sexo e medidas morfológicas, que são atributos válidos para qualquer pinguim amostrado no futuro. Por esse motivo, apesar de sua significância estatística nesta amostra, *ano* foi excluída de todos os modelos candidatos.
+Diferentemente do que uma inspeção apenas visual da Figura \@ref(fig:desconsiderando-coluna-year) poderia sugerir, o ano de coleta não é estatisticamente irrelevante para a resposta: uma ANOVA de um fator (*comprimento_nadadeira_mm* ~ *ano*) rejeita a hipótese de médias iguais entre os três anos ($F = 5,41$; $p = 0,005$), e o efeito permanece altamente significativo mesmo controlando por espécie, ilha e sexo (teste F para a inclusão de *ano* no modelo qualitativo: $F = 25,68$; $p < 0,001$). Ainda assim, *ano* foi descartada da modelagem, por duas razões que se complementam. Primeiro, razão substantiva: a distribuição de espécies não é idêntica entre os anos (*Adelie*: 44/50/52; *Chinstrap*: 26/18/24; *Gentoo*: 33/45/41, em 2007/2008/2009), de modo que parte da associação entre *ano* e a resposta é herdada da composição amostral, e não de uma mudança biológica real ano a ano. Segundo, e mais decisivo: razão de generalização, pois em um cenário real de aplicação do modelo, os anos presentes na base de treinamento (2007/2009) não estarão mais disponíveis para observações futuras — um pinguim medido em 2026 teria um valor de *ano* fora do domínio observado, exigindo extrapolação categórica sem sustentação nos dados. Uma variável de calendário específica ao período de coleta não generaliza para novas coletas, ao contrário de espécie, ilha, sexo e medidas morfológicas, que são atributos válidos para qualquer pinguim amostrado no futuro. Por esse motivo, apesar de sua significância estatística nesta amostra, *ano* foi excluída de todos os modelos candidatos.
 
 
 ### 4.3 Avaliação de correlação entre variáveis
 
-```{r correlacoes, fig.cap="Mapa de calor entre variáveis", echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", out.width="85%", fig.width=8, fig.height=6}
+Para investigar a associação entre os preditores contínuos e a variável resposta, calculamos a matriz de correlação de Pearson, apresentada na Figura \@ref(fig:correlacoes).
+
+```{r correlacoes, fig.cap="Mapa de calor entre variáveis", echo=FALSE, warning=FALSE, fig.pos = "H",message=FALSE, fig.align="center", out.width="85%", fig.width=8, fig.height=6}
 library(ggcorrplot)
 
 num_cols <- c('comprimento_bico_mm', 'profundidade_bico_mm', 'comprimento_nadadeira_mm', 'massa_corporal_g')
@@ -317,6 +328,8 @@ ggcorrplot(matriz_corr,
 ```
 
 A Figura \@ref(fig:correlacoes) apresenta a matriz de correlação de Pearson entre as variáveis numéricas contínuas. Observa-se uma forte correlação positiva entre o comprimento da nadadeira (`comprimento_nadadeira_mm`) e a massa corporal (`massa_corporal_g`) ($r = 0,87$), evidenciando que a massa é o principal preditor linear contínuo do tamanho do apêndice. O comprimento do bico (`comprimento_bico_mm`) também exibe correlação positiva considerável ($r = 0,65$) com a variável resposta. Em contrapartida, a profundidade do bico (`profundidade_bico_mm`) apresenta correlação negativa com a nadadeira ($r = -0,58$), um comportamento aparente causado pela presença da espécie *Gentoo*, cujos indivíduos possuem nadadeiras longas e bicos finos.
+
+Para complementar a matriz de correlação e observar como essas associações se comportam dentro de cada espécie — em vez de apenas na amostra agregada —, geramos os gráficos de dispersão pareados a seguir, coloridos por espécie.
 
 ```{r scatterplots-multiplos, echo=FALSE, fig.align="center", out.width="100%", fig.width=8, fig.height=6}
 paleta_especies <- c('#4C72B0', '#DD8452', '#55A868')
@@ -376,7 +389,7 @@ dados_modelados <- dados |>
 
 ### 5.1 Combinação de Variáveis e Validação Cruzada
 
-Realizou-se uma busca exaustiva por combinações de grupos de variáveis (espécie, ilha, sexo, comprimento e profundidade do bico, massa corporal), avaliadas por validação cruzada K-Fold ($k = 5$), utilizando o RMSE médio como métrica principal. Para comparar os candidatos mais competitivos, aplicou-se o teste t pareado com a correção de variância de Nadeau-Bengio (*Nadeau & Bengio, 2003*):
+Realizou-se uma busca exaustiva por combinações de grupos de variáveis (espécie, ilha, sexo, comprimento e profundidade do bico, massa corporal), avaliadas por validação cruzada K-Fold ($k = 5$), utilizando o RMSE médio como métrica principal. Para comparar os candidatos mais competitivos, aplicou-se o teste t pareado com a correção de variância de Nadeau-Bengio (*Nadeau & Bengio, 2003*), conforme apresentado na Tabela \@ref(tab:tabela-comparativa-modelos):
 
 ```{r tabela-comparativa-modelos, echo=FALSE, warning=FALSE, message=FALSE}
 library(kableExtra)
@@ -404,7 +417,7 @@ knitr::kable(
 
 ### 5.2 Diagnóstico de Multicolinearidade do Candidato de Menor RMSE
 
-O subconjunto de menor RMSE médio (espécie, comprimento e profundidade do bico e massa corporal) foi diagnosticado quanto à multicolinearidade pelo VIF antes de ser considerado modelo final.
+O subconjunto de menor RMSE médio (espécie, comprimento e profundidade do bico e massa corporal) foi diagnosticado quanto à multicolinearidade pelo VIF antes de ser considerado modelo final, conforme mostra a Tabela \@ref(tab:vif-modelo-vencedor).
 
 ```{r vif-modelo-vencedor, echo=FALSE, warning=FALSE, message=FALSE}
 library(car)
@@ -448,42 +461,19 @@ Colinearidade severa não invalida o poder preditivo agregado do modelo, mas com
 
 A decisão entre os candidatos não se apoiou apenas no RMSE médio, mas no conjunto de evidências reunidas nas Seções 5.1 e 5.2. Os três testes pareados relevantes indicam:
 
-- Candidato Multicolinear vs. Modelo Qualitativo: sem diferença significativa de desempenho ($p = 0,14$);
-- Modelo Qualitativo vs. Modelo Quantitativo: sem diferença significativa de desempenho ($p = 0,79$);
-- Candidato Multicolinear vs. Modelo Quantitativo: diferença estatisticamente significativa ($p = 0,02$), favorecendo o candidato multicolinear.
+- Candidato Multicolinear vs. Modelo Qualitativo: sem diferença de desempenho estatisticamente detectável ($p = 0,14$);
+- Modelo Qualitativo vs. Modelo Quantitativo: sem diferença de desempenho estatisticamente detectável ($p = 0,79$);
+- Candidato Multicolinear vs. Modelo Quantitativo: diferença estatisticamente detectável ($p = 0,02$), favorecendo o candidato multicolinear.
 
-Como o Candidato Multicolinear não supera o Modelo A (Qualitativo) de forma estatisticamente significativa, e apresenta colinearidade severa que o Modelo A não apresenta (VIF máximo de 3,17, ante 14,65), optou-se por descartar o candidato de menor RMSE bruto e adotar o Modelo Qualitativo — composto por espécie, ilha e sexo — como modelo final. Essa escolha equilibra três critérios: desempenho preditivo estatisticamente equivalente ao melhor candidato, ausência de multicolinearidade relevante entre os preditores, e maior interpretabilidade dos coeficientes, já que nenhuma variável contínua se sobrepõe informacionalmente à espécie.
+Cabe uma ressalva metodológica: como os três testes foram conduzidos aos pares a partir do mesmo conjunto de candidatos, sem correção para comparações múltiplas, o p-valor de 0,02 deve ser interpretado com cautela — sob um ajuste conservador do tipo Bonferroni (limiar efetivo de α/3 ≈ 0,017 para manter α = 0,05 global), essa diferença deixaria de ser considerada estatisticamente detectável. Ainda assim, o resultado que efetivamente orienta a decisão desta seção — a ausência de diferença detectável entre o Candidato Multicolinear e o Modelo Qualitativo ($p = 0,14$) — permanece válido sob qualquer correção razoável. É importante frisar, também, que a ausência de diferença estatisticamente detectável não constitui prova formal de equivalência entre os modelos: ela apenas indica que os dados disponíveis não oferecem evidência suficiente para distingui-los nesse aspecto específico.
 
-O Modelo Quantitativo, embora também livre de colinearidade, foi descartado por apresentar desempenho preditivo estatisticamente inferior ao candidato de menor RMSE ($p = 0,02$) e por prescindir da variável espécie, cuja contribuição individual pode ser comprovada pela ANOVA da Tabela \@ref(tab:anova-modelos).
+Como o Candidato Multicolinear não supera o Modelo A (Qualitativo) de forma detectável, e apresenta colinearidade severa que o Modelo A não apresenta (VIF máximo de 3,17, ante 14,65), optou-se por descartar o candidato de menor RMSE bruto e adotar o Modelo Qualitativo — composto por espécie, ilha e sexo — como modelo final. Essa escolha equilibra três critérios: desempenho preditivo sem diferença detectável em relação ao melhor candidato, ausência de multicolinearidade relevante entre os preditores, e maior interpretabilidade dos coeficientes, já que nenhuma variável contínua se sobrepõe informacionalmente à espécie.
 
-```{r anova-modelos, echo=FALSE, warning=FALSE, message=FALSE}
-library(broom)
-library(dplyr)
-library(kableExtra)
-
-modelo_sem_especie <- lm(comprimento_nadadeira_mm ~ comprimento_bico_mm + profundidade_bico_mm + massa_corporal_g + ilha + sexo, data = dados_modelados)
-
-modelo_completo <- lm(comprimento_nadadeira_mm ~ comprimento_bico_mm + profundidade_bico_mm + massa_corporal_g + especie + ilha + sexo, data = dados_modelados)
-
-anova(modelo_sem_especie, modelo_completo) |>
-  tidy() |>
-  mutate(
-    term = c("Modelo Sem Espécie", "Modelo Com Espécie"), 
-    p.value = format.pval(p.value, eps = 0.001, decimal.mark = ",")
-  ) |>
-  knitr::kable(
-    col.names = c("Modelo", "GL Res.", "RSS", "GL", "Soma dos Quadrados", "Estat. F", "Valor-p"),
-    caption = "Análise de Variância comparando o modelo restrito e o completo.",
-    booktabs = TRUE,
-    digits = 2,
-    align = c("l", "c", "c", "c", "c", "c", "c") 
-  ) |>
-  kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
-```
+O Modelo Quantitativo, embora também livre de colinearidade, foi descartado por apresentar desempenho preditivo estatisticamente inferior ao candidato de menor RMSE ($p = 0,02$, ressalvada a cautela quanto a comparações múltiplas discutida acima) e por prescindir da variável espécie, cuja contribuição individual se mostrou relevante mesmo controlando pelas demais variáveis morfológicas e categóricas do modelo.
 
 ### 5.4 Modelo Final: Estimativas dos Coeficientes
 
-A Tabela \@ref(tab:modelo-vencedor) apresenta as estimativas do modelo final, ajustado com todas as 333 observações após a limpeza (Seção 4.2):
+A Tabela \@ref(tab:modelo-vencedor) apresenta as estimativas do modelo final, ajustado com todas as 333 observações após a limpeza (Seção 4.2). As variáveis categóricas foram codificadas segundo o esquema clássico de variáveis dummy (Suits, 1957), no qual uma categoria de cada grupo é definida como referência e absorvida pelo intercepto:
 
 $$\begin{aligned}
 \text{flipper length mm} = β_0 + β_1·chinstrap + β_2·gentoo + β_3·dream + β_4·torgersen + β_5·macho + ε
@@ -539,6 +529,8 @@ knitr::kable(
 ```
 
 O modelo final apresenta $R^2$ ajustado de 0,835, indicando que aproximadamente 83,5% da variabilidade observada no comprimento da nadadeira é explicada por espécie, ilha e sexo. Mantidas as demais variáveis constantes, ser *Gentoo* está associado a uma nadadeira, em média, 28,4mm mais longa que *Adelie*; ser *Chinstrap*, a uma nadadeira 6,0mm mais longa; e ser macho, a uma nadadeira 6,9mm mais longa que fêmea. O efeito da ilha é mais discreto: viver em *Torgersen* está associado a uma nadadeira 2,8mm mais longa que em *Biscoe* ($p = 0,019$), enquanto o efeito de *Dream* não é estatisticamente distinguível de *Biscoe* ($p = 0,354$) — a variável foi mantida por seu efeito de conjunto (grupo ilha) e porque sua remoção isolada não é o objetivo desta seleção, feita por grupos de variáveis e não por preditor individual.
+
+A Tabela \@ref(tab:vif-modelo-qualitativo) confirma a ausência de multicolinearidade relevante no modelo final.
 
 ```{r vif-modelo-qualitativo, echo=FALSE, warning=FALSE, message=FALSE}
 library(car)
@@ -762,11 +754,13 @@ O intervalo de confiança (IC) captura a incerteza sobre o comprimento médio es
 
 As variáveis morfológicas dos pinguins do arquipélago *Palmer* mostram-se fortemente associadas entre si e nitidamente agrupadas por espécie, refletindo distinções anatômicas claras de massa e estrutura de bico. A avaliação por validação cruzada K-fold indicou que o subconjunto de menor RMSE médio (espécie, medidas do bico e massa corporal) era, ao mesmo tempo, o de maior colinearidade (VIF = 14,65 para *Gentoo*) — evidência de que a menor métrica de erro, isoladamente, não é suficiente para escolher um modelo final. 
 
-Diante da equivalência estatística de desempenho entre esse candidato e um modelo composto apenas por espécie, ilha e sexo (*teste t pareado com correção de Nadeau-Bengio*, $p = 0,14$), e da ausência de multicolinearidade relevante nesse segundo modelo (VIF máximo de 3,17), optou-se por adotá-lo como modelo final. Esse modelo, inteiramente qualitativo, preservou um bom poder explicativo (R² ajustado = 0,835) e apresentou diagnóstico de resíduos mais favorável que o candidato descartado, com normalidade dos erros não rejeitada pelo teste de Jarque-Bera ($p = 0,975$) e independência confirmada pelo teste de Durbin-Watson (1,78); persiste apenas heterocedasticidade moderada, detectada pelo teste de BreuschPagan ($p = 0,023$), compatível com a maior variabilidade natural esperada em espécimes de maior porte. 
+Diante da ausência de diferença de desempenho estatisticamente detectável entre esse candidato e um modelo composto apenas por espécie, ilha e sexo (*teste t pareado com correção de Nadeau-Bengio*, $p = 0,14$; resultado que se mantém mesmo sob correção conservadora para comparações múltiplas), e da ausência de multicolinearidade relevante nesse segundo modelo (VIF máximo de 3,17), optou-se por adotá-lo como modelo final. Esse modelo, inteiramente qualitativo, preservou um bom poder explicativo (R² ajustado = 0,835) e apresentou diagnóstico de resíduos mais favorável que o candidato descartado, com normalidade dos erros não rejeitada pelo teste de Jarque-Bera ($p = 0,975$) e independência confirmada pelo teste de Durbin-Watson (1,78); persiste apenas heterocedasticidade moderada, detectada pelo teste de Breusch-Pagan ($p = 0,023$), compatível com a maior variabilidade natural esperada em espécimes de maior porte.
 
-O tratamento da variável *ano* ilustra a mesma lógica: embora estatisticamente significativa nesta amostra (mesmo controlando por espécie, ilha e sexo), foi descartada por não representar um atributo generalizável — os anos de coleta observados não estarão disponíveis para novas observações futuras, tornando a variável útil apenas para descrever esta amostra específica, e não para prever novos pinguins. 
+Essa heterocedasticidade residual é registrada aqui como a principal fragilidade metodológica do trabalho: tanto os erros-padrão dos coeficientes (Seção 5.4) quanto os intervalos de confiança e de predição (Seção 7) foram calculados sob a suposição clássica de variância constante dos erros, suposição que o próprio teste de Breusch-Pagan rejeita. Na prática, isso sugere que a incerteza reportada pode estar levemente subestimada para as espécies com resíduos mais dispersos (*Adelie* e *Chinstrap*) e levemente superestimada para *Gentoo*. Trabalhos futuros poderiam endereçar essa limitação com erros-padrão robustos (estimador de White/HC3) ou mínimos quadrados ponderados por grupo, sem alterar a conclusão qualitativa da seleção de variáveis aqui apresentada.
 
-O modelo final permite estimar o comprimento da nadadeira a partir da espécie, da ilha e do sexo do indivíduo, sem depender de medidas morfológicas contínuas redundantes entre si. Embora a leve heterocedasticidade residual exija cautela na leitura de intervalos de predição para observações muito distantes do centro da amostra, a robustez da comparação por validação cruzada, aliada ao diagnóstico de multicolinearidade e de resíduos, sustenta esse modelo como a escolha mais adequada entre desempenho preditivo, parcimônia e interpretabilidade para a inferência morfológica dentro do intervalo de medidas catalogadas nas ilhas do arquipélago.
+O tratamento da variável *ano* ilustra uma lógica semelhante de cautela na leitura da significância estatística: embora estatisticamente significativa nesta amostra (mesmo controlando por espécie, ilha e sexo), foi descartada por não representar um atributo generalizável — os anos de coleta observados não estarão disponíveis para novas observações futuras, tornando a variável útil apenas para descrever esta amostra específica, e não para prever novos pinguins. 
+
+O modelo final permite estimar o comprimento da nadadeira a partir da espécie, da ilha e do sexo do indivíduo, sem depender de medidas morfológicas contínuas redundantes entre si. Embora a heterocedasticidade residual exija cautela na leitura de intervalos de predição para observações muito distantes do centro da amostra, a robustez da comparação por validação cruzada, aliada ao diagnóstico de multicolinearidade e de resíduos, sustenta esse modelo como a escolha mais adequada entre desempenho preditivo, parcimônia e interpretabilidade para a inferência morfológica dentro do intervalo de medidas catalogadas nas ilhas do arquipélago.
 
 ## Referências
 
